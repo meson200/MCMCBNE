@@ -41,7 +41,7 @@ for k=1:size(txt,2)
         case 'RPdate'
         case 'RP_coded'    
         case 'RP_coded2'
-        case 'Failure'   
+        case 'failure'   
         case 'RPdate'    
         case 'LastFU'     
         case 'FUmonths'
