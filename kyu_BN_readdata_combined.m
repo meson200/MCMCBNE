@@ -8,7 +8,7 @@ function [data,data_c,data_missing,data_c_missing,labels,mi,studyid,FracSize,COM
 %
 % inputs
 %
-% SBRTfilter = 2: include only conventioanl fx (fraction size < 3)
+% SBRTfilter = 2: include only conventioanl fx (fraction size < 2)
 % SBRTfilter = 3: include only SBRT patients (fraction size > 3)
 % SBRTfilter = 1: SBRT+Conventional
 % 
@@ -124,9 +124,9 @@ switch SBRTfilter
     case 1
        FracFilter = find(FracSize>0);
     case 2
-       FracFilter = find(FracSize<2.01);
+       FracFilter = find(FracSize<=2);
     case 3
-       FracFilter = find(FracSize>3);
+       FracFilter = find(FracSize>=3);
 end
 data_X_c_raw = data_X_c_raw(FracFilter,:);
 data_X_c_raw_missing = data_X_c_raw_missing(FracFilter,:);
