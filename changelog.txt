@@ -1,0 +1,13 @@
+- 23 Jun 2015 Sangkyu Lee
+
+* created a new import function kyu_BN_readdata.m 
+This is different from the obsolete kyu_BN_readdata_combine.m in: 
+- it reads data from all the institutions from a single file
+- Accordingly, patient identifier (studyid) has a new format 
+  institution + 3 digit ID (ex:L002)
+- endpoint(class) can be customized (class_name)
+- missing data is excluded from odds ratio calculation
+* changes in kyu_readphysical.m
+- users can specify which variable should be a class through
+  an input argument class_name
+
