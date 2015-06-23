@@ -1,4 +1,4 @@
-function [data_raw,data_raw_missing] = kyu_readbiomarkers(NameoftheFile,FracSize,imp)
+function [data_raw,data_raw_missing] = kyu_readbiomarkers(NameoftheFile,studyid,FracSize,imp)
 
 % this function imports biomarker measurement data from .xls and
 % saves it as a matrix of marker concentration values in a raw scale
@@ -14,6 +14,10 @@ function [data_raw,data_raw_missing] = kyu_readbiomarkers(NameoftheFile,FracSize
 %
 % outputs
 %
+% patient are ordered as in the variable "studyid"
+% pts not included in the "studyid" won't be imported
+% pts in the "studyid" but not present in the raw excel file will be left
+% NaN
 % data_raw: a struct variable with the size = (No. of variable found in the file)
 % and missing data filled-in
 % data_raw_missing: same as data_raw, except that missing entries left NaN
@@ -24,32 +28,27 @@ data_raw = struct('name',{},'value',{});
 time = [];
 id = [];
 no_marker = (size(txt,2)-1)/2;
-
+tag = {};
 for k=2:size(txt,1)
     [tmp1,tmp2] = strtok(txt(k,1),'-');
     time = [time -1*str2num(tmp2{1,1})];    
-    tmp3 = strtok(tmp1,'L');  
-    id = [id str2num(tmp3{1,1})];
+    %tmp3 = strtok(tmp1,'L');  
+    tag = [tag tmp1{1}];
+    inst = tmp1{1}(1);
+    tmp3 = tmp1{1}(2:end);
+    
+    id = [id str2num(tmp3)];
 end
 %idss = unique(id,'first');
-[dummy I]=unique(id,'first');
-idss=id(sort(I));
-SBRTids = idss(find(FracSize~=2));
-samplesize = numel(idss);
-%fraction = []; % binary array to denote fractionation (2:SBRT, 1:conventional)
-%id2  = [];
-% for i=1:samplesize
-%     if numel(find(id==idss(i)))<5 % SBRT patients have less than 5 time points
-%         fraction = [fraction 2];
-%         id2 = [id2 i*ones(1,4)]; 
-%         time = [time 1 2 4 5]; % ad-hoc assignment for SBRT pts only: use end-RT level as if it were intra-RT, 3-month as if end-RT 
-%     else % conventional 
-%         fraction = [fraction 1];
-%         id2 = [id2 i*ones(1,5)];
-%         time = [time 1 2 3 4 5];
-%     end
-% end   
+[dummy,I]=unique(id,'first');
+[dummy_2,I_2]=unique(tag,'first');
 
+
+idss=id(sort(I));
+idss_2 = tag(sort(I_2));
+SBRTids = studyid(find(FracSize>2));
+% import only the patients queried by studyid
+samplesize = numel(studyid);
     
 num_of_var_per_marker = 4;
 %3 time points (preRT,intraRT,endRT) 
@@ -65,21 +64,19 @@ for i=1:no_marker
     varname{1,ind+4} = [markername '_ratio'];
 end
 
-
-
 temp_missing = zeros(samplesize,no_marker*(num_of_var_per_marker-1));
 for i=1:no_marker
     %each biomarker
-    temp_pre = zeros(samplesize,1);
-    temp_intra = zeros(samplesize,1);
-    temp_post = zeros(samplesize,1);
+    temp_pre = NaN(samplesize,1);
+    temp_intra = NaN(samplesize,1);
+    temp_post = NaN(samplesize,1);
     for j = 1:size(num,1)
-        row = find(id(j)==idss);
+        row = find(ismember(studyid,tag(j)));
         if time(j) == 1
             temp_pre(row) = num(j,2*i-1);
         elseif time(j) == 2
             temp_intra(row) = num(j,2*i-1);
-        elseif time(j) == 3 && isempty(find(id(j)==SBRTids)) % conventional patients
+        elseif time(j) == 3 && isempty(find(ismember(SBRTids,tag(j)))); % conventional patients
             temp_post(row) = num(j,2*i-1); 
         end
     end
