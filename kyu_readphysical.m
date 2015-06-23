@@ -51,12 +51,13 @@ for k=1:size(txt,2)
         case 'RP_coded2'
         case 'failure'
             tmparray = txt(2:end,k);
-            tmparray2 = zeros(samplesize,1);
+            tmparray2 = NaN(samplesize,1);
             data_raw(i).name = txt(1,k);
-            
             for u = 1:samplesize
                if strcmp('no disease',tmparray(u))
                    tmparray2(u) = 1;
+               elseif length(tmparray{u}) < 2 % empty cell -> NaN   
+                   tmparray2(u) = NaN;
                else
                    tmparray2(u) = 2;  
                end
