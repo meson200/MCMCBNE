@@ -21,7 +21,7 @@ function [selected,CElist,CEvar_avg,CErand,blanket,labels] = Stability_KS(blanke
 normalize = 3; % K-means normalization
 WhichFraction = 2; % include only conventioanl fx (fraction size < 3)
 
-[~,~,data_trn_missing,data_trn_c_missing,labels,mi] = kyu_BN_readdata_combined(WhichFraction,normalize);
+[~,~,data_trn_missing,data_trn_c_missing,labels,mi] = kyu_BN_readdata(WhichFraction,normalize);
 
 % eliminate missing data (for variable selection)
 colstodelete = [];

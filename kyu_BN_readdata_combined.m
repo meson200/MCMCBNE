@@ -23,7 +23,8 @@ function [data,data_c,data_missing,data_c_missing,labels,mi,studyid,FracSize,COM
 % data_c_missing: continuous cata / missing data left as NaN
 % labels: a cell array of variable names
 % mi: mutual information between variables and RP
-% studyid: ID of the imported patients
+% studyid: cell array of patient identifiers. one letter for an institution followed by a
+% 3-digit number (ex:W001)
 % FracSize: fraction size of the imported patients
 % COMSI: superior-inferior location of a PTV centroid 
 %
@@ -53,7 +54,7 @@ scaling_values = [365,1/3700,1000,1000,100,100,100,0.01,0.01];
 % physical and biological data separated in two .xls files
 dir_name_WashU = '/Users/kyu/Desktop/Patients/NSCLC_WUSTL/';
 filename_bio_WashU = 'WashU_biomarkers.xls';
-filename_phy_WashU = 'WashU_features_20150301.xls';
+filename_phy_WashU = 'WashU_features.xls';
 fullpath_bio_WashU = cat(2,dir_name_WashU,filename_bio_WashU);
 fullpath_phy_WashU = cat(2,dir_name_WashU,filename_phy_WashU);
 dir_name_McGill = '/Users/kyu/Desktop/Patients/NSCLC_McGill/';
@@ -61,11 +62,9 @@ filename_bio_McGill = 'McGill_biomarkers_20150213.xls';
 filename_phy_McGill = 'McGill_features_20150225.xls';
 fullpath_bio_McGill = cat(2,dir_name_McGill,filename_bio_McGill);
 fullpath_phy_McGill = cat(2,dir_name_McGill,filename_phy_McGill);
-
 % read the WashU data first and obtain the list of variables from the user prompt 
-[data_raw_phy_1,data_raw_phy_missing_1,class_1,pts_to_include_1,studyid,FracSize_1] = kyu_readphysical(fullpath_phy_WashU,imp);
-studyid_1 = studyid(pts_to_include_1);
-[data_raw_bio_1,data_raw_bio_missing_1] = kyu_readbiomarkers(fullpath_bio_WashU,FracSize_1,imp);
+[data_raw_phy_1,data_raw_phy_missing_1,class_1,pts_to_include_1,studyid_1,FracSize_1] = kyu_readphysical(fullpath_phy_WashU,imp,'RP');
+[data_raw_bio_1,data_raw_bio_missing_1] = kyu_readbiomarkers(fullpath_bio_WashU,studyid_1,FracSize_1,imp);
 data_raw = [data_raw_bio_1 data_raw_phy_1];
 data_raw_missing = [data_raw_bio_missing_1 data_raw_phy_missing_1];
 for i = 1:numel(data_raw_phy_1)
@@ -73,7 +72,6 @@ for i = 1:numel(data_raw_phy_1)
        COMSI_1 = data_raw_phy_1(1,i).value(pts_to_include_1);
    end
 end
-FracSize_1 = FracSize_1(pts_to_include_1);
 
 % input dialog
 disp('The following variables are found: \n');
@@ -95,24 +93,30 @@ for i=1:num_nodes
 end 
 data_X_c_1 = kyu_preprocess(data_raw,labels,pts_to_include_1,[],[]);
 data_X_c_missing_1 = kyu_preprocess(data_raw_missing,labels,pts_to_include_1,[],[]);
-[data_raw_phy_2,data_raw_phy_missing_2,class_2,pts_to_include_2,studyid,FracSize_2] = kyu_readphysical(fullpath_phy_McGill,2);
-studyid_2 = studyid(pts_to_include_2)+100;
-[data_raw_bio_2,data_raw_bio_missing_2] = kyu_readbiomarkers(fullpath_bio_McGill,FracSize_2,2);
+studyid_1 = studyid_1(pts_to_include_1);
+FracSize_1 = FracSize_1(pts_to_include_1);
+COMSI_1 = COMSI_1(pts_to_include_1);
+
+% read McGill dataset
+[data_raw_phy_2,data_raw_phy_missing_2,class_2,pts_to_include_2,studyid_2,FracSize_2] = kyu_readphysical(fullpath_phy_McGill,2,'RP');
+[data_raw_bio_2,data_raw_bio_missing_2] = kyu_readbiomarkers(fullpath_bio_McGill,studyid_2,FracSize_2,2);
 for i = 1:numel(data_raw_phy_2)
    if strcmp(data_raw_phy_2(1,i).name,'PTVCOMSI') 
        COMSI_2 = data_raw_phy_2(1,i).value(pts_to_include_2);
    end
 end
-
-% merge the dataset from the two institutions
-FracSize_2 = FracSize_2(pts_to_include_2);
-studyid = [studyid_1; studyid_2];
-COMSI = [COMSI_1; COMSI_2];
-FracSize = [FracSize_1; FracSize_2];
 data_raw = [data_raw_bio_2 data_raw_phy_2];
 data_raw_missing = [data_raw_bio_missing_2 data_raw_phy_missing_2];
 data_X_c_2 = kyu_preprocess(data_raw,labels,pts_to_include_2,scaling_markers,scaling_values,[]);                                                                          
 data_X_c_missing_2 = kyu_preprocess(data_raw_missing,labels,pts_to_include_2,scaling_markers,scaling_values,[]);
+studyid_2 = studyid_2(pts_to_include_2);
+FracSize_2 = FracSize_2(pts_to_include_2);
+COMSI_2 = COMSI_2(pts_to_include_2);
+
+% merge the dataset from the two institutions
+studyid = [studyid_1; studyid_2];
+COMSI = [COMSI_1; COMSI_2];
+FracSize = [FracSize_1; FracSize_2];
 data_X_c_raw = [data_X_c_1; data_X_c_2];
 data_X_c_raw_missing = [data_X_c_missing_1; data_X_c_missing_2];
 class_1 = class_1(pts_to_include_1);

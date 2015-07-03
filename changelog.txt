@@ -11,3 +11,8 @@ This is different from the obsolete kyu_BN_readdata_combine.m in:
 - users can specify which variable should be a class through
   an input argument class_name
 
+- 3 Jul 2015 Sangkyu Lee
+
+* added a graph prior construction module
+* added a MCMC graph learning module
+
