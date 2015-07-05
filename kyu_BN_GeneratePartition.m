@@ -20,8 +20,7 @@ function data = kyu_BN_GeneratePartition(Npart,val)
 % test_nointra: biomarker intra- or ratio- removed from test_missing
 % test_c: test set, imputed/continuous
 % bio_*: the training/testing set containing only biological variables
-% phy: the test set containing the 4 NTCP parameters 
-% (MLD, V20, gEUD, Bradley et al (COMSI model).)
+% phy: the test set containing probability estimates from physical models, set to zero 
 % *orig*: the source dataset 
 
 SBRTfilter = 2; % fractionation filter
@@ -36,21 +35,13 @@ num_nodes = numel(labels)+1;
 trn_cases = size(data_trn_KM,2);
 labels{num_nodes} = 'RP';
 
-% generate NTCP parameters
-NTCPs = zeros(trn_cases,4);
-for i = 1:trn_cases
-   if i<23 % WashU sample size = 22
-       NTCPs(i,:) = kyu_estimateNTCP(studyID(i),FracSize(i),COMSI(i),1);
-   else
-       NTCPs(i,:) = kyu_estimateNTCP(studyID(i)-100,FracSize(i),COMSI(i),2); 
-   end
-end
-%imputation on NTCP parameters
-NTCPs = medianimpute(NTCPs);
-NTCPs = NTCPs';
+% physical model prediction currently set to zero
+% make your own physics model here (TCP,NTCP)
+% PhyModels = TCP(studyID,FracSize,...) 
+PhyModels = zeros(trn_cases,4);
 
 if strcmp(val,'BS') % bootstrap validation
-    data_KM = PutData([],[],Npart,nbio,labels,data_trn_KM,data_trn_c_KM,data_trn_missing_KM,data_trn_c_missing_KM,NTCPs);
+    data_KM = PutData([],[],Npart,nbio,labels,data_trn_KM,data_trn_c_KM,data_trn_missing_KM,data_trn_c_missing_KM,PhyModels);
     pts_train = data_KM.patients_train; 
     pts_test = data_KM.patients_test; 
 else % cross-validation
@@ -65,14 +56,14 @@ else % cross-validation
         pts_train{count} = sb_cases; 
         pts_test{count} = leftout;
     end
-    data_KM = PutData(pts_train,pts_test,Npart,nbio,labels,data_trn_KM,data_trn_c_KM,data_trn_missing_KM,data_trn_c_missing_KM,NTCPs);
+    data_KM = PutData(pts_train,pts_test,Npart,nbio,labels,data_trn_KM,data_trn_c_KM,data_trn_missing_KM,data_trn_c_missing_KM,PhyModels);
 end
-data_MI = PutData(pts_train,pts_test,Npart,nbio,labels,data_trn_MI,data_trn_c_MI,data_trn_missing_MI,data_trn_c_missing_MI,NTCPs);
+data_MI = PutData(pts_train,pts_test,Npart,nbio,labels,data_trn_MI,data_trn_c_MI,data_trn_missing_MI,data_trn_c_missing_MI,PhyModels);
 data = struct('KM',data_KM,'MI',data_MI);
 
 
 
-function Ds = PutData(pts_train,pts_test,Npart,nbio,labels,data,data_c,data_missing,data_c_missing,NTCPs)
+function Ds = PutData(pts_train,pts_test,Npart,nbio,labels,data,data_c,data_missing,data_c_missing,PhyModels)
 
 Ds = struct('train',0,'train_missing',0,'test_missing',0,'Labels',[]);
 SampleSize = size(data,2);
@@ -124,8 +115,8 @@ for i = 1:Npart
        
         
         
-        NTCPtemp = NTCPs(:,leftout);
-        Ds.phy{i} = NTCPtemp;
+        PhyModeltemp = PhyModels(:,leftout);
+        Ds.phy{i} = PhyModeltemp;
 end
 
 
