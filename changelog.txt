@@ -16,3 +16,12 @@ This is different from the obsolete kyu_BN_readdata_combine.m in:
 * added a graph prior construction module
 * added a MCMC graph learning module
 
+- 6 Jul 2015 Sangkyu Lee
+
+* kyu_readphysical.m was modified so that :
+- it excludes the instances with a missing class 
+- pts w/o a class value are assigned 0 for an array pts_to_include
+  which will be filtered out by kyu_preprocess.m 
+- study IDs for the removed patients are displayed
+* kyu_BN_readdata now displays an event rate on a command window
+- event rate is defined as a fraction of class==2

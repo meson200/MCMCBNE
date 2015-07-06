@@ -24,7 +24,7 @@ if isnan(num(1,1))
     num = num(2:end,:);
 end    
 tmparray = zeros(samplesize,1);
-pts_to_include = ones(samplesize,1);
+pts_to_include = ones(samplesize,1); % by default, import every instances
 FracSize = ones(samplesize,1);
 
 % populate data_raw
@@ -83,9 +83,9 @@ for k=1:size(txt,2)
                     tmparray(u) = 2;
                 end
             end
-            class = tmparray; % class in this case is a binary for RP occurrence
-            data_raw(i).name = {'Pneumonitis'};
-            data_raw(i).value = num(:,k-offset);
+            data_raw(i).name = {'RP'};
+            data_raw(i).value = tmparray;
+            %data_raw(i).value = num(:,k-offset);
             i = i+1;
         case 'age'
            tmparray = num(:,k-offset);
@@ -171,11 +171,22 @@ for i=1:length(data_raw)
    % identify a class variable
    if strcmp(data_raw(i).name,class_name)
        class = data_raw(i).value;
+       class_missing = data_raw_missing(i).value;
    end
 end
 
+% added Jul 6 2015
+% remove the rows with missing class from data
+pts_wo_missingclass = ~isnan(class_missing);
+pts_to_include = pts_to_include & pts_wo_missingclass;
+whoarethose = find(isnan(class_missing));
+% display which patients were excluded due to a missing class
+if ~isempty(whoarethose)
+    str = strcat(studyid(whoarethose));
+    disp('the following pts were removed due to a missing class:');
+    disp(str);
+end
 pts_to_include = find(pts_to_include==1);
-
 
 
 

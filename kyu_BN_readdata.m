@@ -57,7 +57,7 @@ data_raw = [data_raw_bio data_raw_phy];
 data_raw_missing = [data_raw_bio_missing data_raw_phy_missing];
 for i = 1:numel(data_raw_phy)
    if strcmp(data_raw_phy(1,i).name,'PTVCOMSI') 
-       COMSI = data_raw_phy(1,i).value(pts_to_include);
+       COMSI = data_raw_phy(1,i).value;
    end
 end
 
@@ -84,6 +84,7 @@ data_X_c_raw_missing = kyu_preprocess(data_raw_missing,labels,pts_to_include,[],
 studyid = studyid(pts_to_include);
 FracSize = FracSize(pts_to_include);
 COMSI = COMSI(pts_to_include);
+class = class(pts_to_include);
 
 % apply a fraction size filter
 switch SBRTfilter
@@ -136,8 +137,6 @@ class_forKS(rowtodelete) = [];
 %     disp(['variables selected: ',varstr,' variance:',num2str(all_vars)]);
 % end
 
-events = find(class==2);
-
 % add a class to a data
 data = reshapeforbn(data_X,class);
 data_c = reshapeforbn(data_X_c,class);
@@ -160,6 +159,8 @@ for i=1:num_nodes
     str = sprintf('%d.%s : %4.2f(%4.2f,%4.2f)',i,labels{i},or_trn(1),or_trn(2),or_trn(3));
     disp(str)      
 end
+event = numel(find(y_trn==1))/numel(y_trn)*100;
+disp(['(event rate: ',num2str(event),'%)']);
 
 % save the imported data into the .csv file
 content = [data_X_c_missing'; class'];

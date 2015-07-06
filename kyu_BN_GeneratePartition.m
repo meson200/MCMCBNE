@@ -112,10 +112,7 @@ for i = 1:Npart
         Ds.bio_train_missing{i} = Ds.train_missing{i}(shortened,:);
         Ds.bio_test_missing{i} = Ds.test_missing{i}(shortened,:);
         Ds.bio_test_nointra{i} = Ds.test_nointra{i}(shortened,:);
-       
-        
-        
-        PhyModeltemp = PhyModels(:,leftout);
+        PhyModeltemp = PhyModels(leftout,:);
         Ds.phy{i} = PhyModeltemp;
 end
 
