@@ -1,49 +1,46 @@
-function output = kyu_estimateNTCP(studyID,FracSize,COMSI,source)
+function output = kyu_estimateNTCP(studyID,FracSize,COMSI)
 
 % calculate dosimetric variables & RP risks from DVH
 % different formats and directories are used for DVHs from two institutions
 % inputs:
 % studyID: from kyu_BN_readdata_combined 
 % FracSize: from kyu_BN_readdata_combined
-% source: (1) WashU (2) McGill 
+% source: (1) WashU (2) McGill (3) CHUM
 % output: [MLD V20 gEUD Bradley]
 
 % LQ model based correction for fraction size
 abr = 4; % alpha-beta ratio for pneumonitis (Bentzen et al. 2007)
 fac = (FracSize+abr)/(2+abr);
 
-
-if studyID < 10
-    filename = cat(2,'L00',num2str(studyID),'_dvh');
-else
-    filename = cat(2,'L0',num2str(studyID),'_dvh');
+dirname = '~/Box Sync/SKyu/lungdata/DVH/';
+cd(dirname);
+filename = strcat(studyID,'_dvh');
+inst = studyID(1);
+switch inst
+    case 'W' % WashU
+        ext = '.xls';
+    case 'L'
+        ext = '';
+    case 'C'
+        ext = '.csv';
 end
-
-if source==1
-    if studyID == 7
-       filename = cat(2,filename,'_cum'); 
-    end
-    filename = cat(2,filename,'.xls');
-    directoryname = '/Users/kyu/Desktop/Patients/NSCLC_WUSTL/DVH/';
-    fullpath = cat(2,directoryname,filename);
-   
-else
-    directoryname = '/Users/kyu/Desktop/Patients/NSCLC_McGill/DVH/';
-    fullpath = cat(2,directoryname,filename);
-end
-
+fullpath = strcat(2,dirname,filename,ext);
 filethere = exist(fullpath,'file');
 if filethere
     
-    if source == 1
+    switch inst
+    case 'W' 
         if studyID == 7
-            [DVH_dose,DVH_volume] = kyu_readEclipseDVH_WashU(filename,2);
+            [DVH_dose,DVH_volume] = kyu_readEclipseDVH_WashU(fullpath,2);
         else
-            [DVH_dose,DVH_volume] = kyu_readEclipseDVH_WashU(filename,1);
+            [DVH_dose,DVH_volume] = kyu_readEclipseDVH_WashU(fullpath,1);
         end
-    else
-        [DVH_dose,DVH_volume] = kyu_readEclipseDVH_McGill(filename);
+    case 'L'
+        [DVH_dose,DVH_volume] = kyu_readEclipseDVH_McGill(fullpath);
+    case 'C'
+        [DVH_dose,DVH_volume] = kyu_readEclipseDVH_CHUM(fullpath);
     end
+
     % calculate MLD first
     totalvolume = sum(DVH_volume);
     MLD = DVH_dose'*DVH_volume/totalvolume;

@@ -25,3 +25,10 @@ This is different from the obsolete kyu_BN_readdata_combine.m in:
 - study IDs for the removed patients are displayed
 * kyu_BN_readdata now displays an event rate on a command window
 - event rate is defined as a fraction of class==2
+
+- 8 Jul 2015 Sangkyu Lee
+
+* added a bootstrap customization option in KS_Stability.m
+- a variable “BS_institution”, when set to 1, force the sampling 
+  to preserve the fraction of samples between source institutions
+  which is indicated as the first letter of “studyid”

@@ -20,8 +20,10 @@ function [selected,CElist,CEvar_avg,CErand,blanket,labels] = Stability_KS(blanke
 
 normalize = 3; % K-means normalization
 WhichFraction = 2; % include only conventioanl fx (fraction size < 3)
+BS_institution = 1; % when creating bootstrap samples, 
+%                     force the sampling to preserve the fraction of samples between source institution (1) or not (0)
 
-[~,~,data_trn_missing,data_trn_c_missing,labels,mi] = kyu_BN_readdata(WhichFraction,normalize);
+[~,~,data_trn_missing,data_trn_c_missing,labels,mi,studyid,~,~] = kyu_BN_readdata(WhichFraction,normalize);
 
 % eliminate missing data (for variable selection)
 colstodelete = [];
@@ -34,6 +36,7 @@ end
 % remove missing data
 data_trn_missing(:,colstodelete) = [];
 data_trn_c_missing(:,colstodelete) = [];
+studyid(colstodelete) = [];
 data_trn = data_trn_missing;
 data_trn_c = data_trn_c_missing;
 
@@ -52,23 +55,23 @@ CEvar_std = zeros(1,Nvar);
 
 i = 1;
 while i < Nrand + 1
-
+        
     % generate BS samples
     disp(['bootstrap sample #',num2str(i)]);
     pot = 1:trn_cases;
-    if WhichFraction ~=3
-        % to ensure the fraction of samples between two institution is
+    if BS_institution == 1
+        % to ensure the fraction of sample size between institutions is
         % preserved in every bootstrap sets
-        SampleWashU = 22;
-        SampleWashU_missing = numel(colstodelete<=SampleWashU);
-        pot1 = 1:SampleWashU-SampleWashU_missing;
-        pot2 = SampleWashU-SampleWashU_missing+1:trn_cases;
-        % sampling with replacement
-        sb1_cases = randsample(pot1,numel(pot1),true);
-        sb2_cases = randsample(pot2,numel(pot2),true);
-        sb_cases = [sb1_cases sb2_cases];
+        %instit_tags = 
+        [inst,group] = kyu_GroupbyInstitution(studyid);
+        sb_cases = [];
+        for p = 1:length(inst)
+            pot = group{p};
+            sb_cases_temp = randsample(pot,numel(pot),true);
+            sb_cases = [sb_cases sb_cases_temp];
+        end
     else
-      sb_cases = randsample(pot,trn_cases,true);
+        sb_cases = randsample(pot,trn_cases,true);
     end
     train_c = data_trn_c(:,sb_cases);
     train = data_trn(:,sb_cases);
