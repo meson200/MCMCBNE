@@ -8,8 +8,8 @@ function [data,data_c,data_missing,data_c_missing,labels,mi,studyid,FracSize,COM
 %
 % inputs
 %
-% SBRTfilter = 2: include only conventioanl fx (fraction size < 2)
-% SBRTfilter = 3: include only SBRT patients (fraction size > 3)
+% SBRTfilter = 2: include only conventioanl fx (dose per fraction <= 2)
+% SBRTfilter = 3: include only SBRT patients (fraction size <= 5)
 % SBRTfilter = 1: SBRT+Conventional
 % 
 % disc = 2: supervised (maximum mutual information)
@@ -47,7 +47,7 @@ class_name = 'RP'; % choose your endpoint here. will be saved to an array "class
 % physical and biological data separated in two .xls files
 dir_name = '~/Box Sync/SKyu/lungdata/';
 filename_bio = 'biomarkers_20150622.xls';
-filename_phy = 'dosimetry_clinical_20150622.xls';
+filename_phy = 'dosimetry_clinical_20150709.xls';
 fullpath_bio = cat(2,dir_name,filename_bio);
 fullpath_phy = cat(2,dir_name,filename_phy);
 % read the WashU data first and obtain the list of variables from the user prompt 
@@ -58,6 +58,8 @@ data_raw_missing = [data_raw_bio_missing data_raw_phy_missing];
 for i = 1:numel(data_raw_phy)
    if strcmp(data_raw_phy(1,i).name,'PTVCOMSI') 
        COMSI = data_raw_phy(1,i).value;
+   elseif strcmp(data_raw_phy(1,i).name,'NumFrac')    
+       NumFrac = data_raw_phy(1,i).value;
    end
 end
 
@@ -89,11 +91,11 @@ class = class(pts_to_include);
 % apply a fraction size filter
 switch SBRTfilter
     case 1
-       FracFilter = find(FracSize>0);
+       FracFilter = find(NumFrac>0);
     case 2
        FracFilter = find(FracSize<=2);
     case 3
-       FracFilter = find(FracSize>=3);
+       FracFilter = find(NumFrac<=5);
 end
 data_X_c_raw = data_X_c_raw(FracFilter,:);
 data_X_c_raw_missing = data_X_c_raw_missing(FracFilter,:);
@@ -107,11 +109,6 @@ studyid = studyid(FracFilter);
 
 % discretize
 [data_X,data_X_missing,b_filled,b_missing,mi] = kyu_discretize(data_X_c,data_X_c_missing,class,disc,bins);
-
-% plot discretization results
-%scales_plot = [3700/10^6,1,1,1,1/1000,1,1/1000,1,1,1/100,1/100,1,100,100,1/365,1];
-%mp2013_plotbins(data_X_c,data_X_c_raw,b_filled,labels,scales_plot);
-
 
 % eliminate missing data (for variable selection)
 data_X_forKS = data_X;

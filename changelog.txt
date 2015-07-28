@@ -32,3 +32,13 @@ This is different from the obsolete kyu_BN_readdata_combine.m in:
 - a variable “BS_institution”, when set to 1, force the sampling 
   to preserve the fraction of samples between source institutions
   which is indicated as the first letter of “studyid”
+
+- 20 Jul 2015 Sangkyu Lee
+* kyu_BN_MCMC_convtest.m was modified so that:
+- an option is added to choose a discretization type
+
+- 28 Jul 2015 Sangkyu Lee
+* kyu_BN_readdata.m was modified 
+- having a column named ’NumFrac’ (number of fractions) is mandatory 
+  in the source spreadsheet, which is used to filter fractionation group 
+- SBRT cohort (SBRTfilter=3) is now defined as NumFrac<=5 ( 
