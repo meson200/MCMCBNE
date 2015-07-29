@@ -85,6 +85,7 @@ data_X_c_raw = kyu_preprocess(data_raw,labels,pts_to_include,[],[]);
 data_X_c_raw_missing = kyu_preprocess(data_raw_missing,labels,pts_to_include,[],[]);
 studyid = studyid(pts_to_include);
 FracSize = FracSize(pts_to_include);
+NumFrac = NumFrac(pts_to_include);
 COMSI = COMSI(pts_to_include);
 class = class(pts_to_include);
 
