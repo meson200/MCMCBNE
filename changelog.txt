@@ -41,4 +41,15 @@ This is different from the obsolete kyu_BN_readdata_combine.m in:
 * kyu_BN_readdata.m was modified 
 - having a column named ’NumFrac’ (number of fractions) is mandatory 
   in the source spreadsheet, which is used to filter fractionation group 
-- SBRT cohort (SBRTfilter=3) is now defined as NumFrac<=5 ( 
+- SBRT cohort (SBRTfilter=3) is now defined as NumFrac<=5 (ASTRO policy)
+
+- 30 Jul 2015 Sangkyu Lee
+* change in kyu_readbiomarkers.m: installed a safety measure for the 
+  MATLAB function xlsread showing inconsistent behaviors  
+
+- 4 Aug 2015 Sangkyu Lee
+* kyu_BN_readdata.m: 
+- p values for odds ratios available (computed by likelihood ratio test)
+- In case of skewed distribution (resulting in 0 counts in a contingency
+  table) a pseudo count of 1 is added to each cell of the table
+

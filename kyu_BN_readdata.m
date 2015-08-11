@@ -143,18 +143,33 @@ data_c_missing = reshapeforbn(data_X_c_missing,class);
 
 disp('--------------odds ratio of the selected variables-----------------');
 y_trn = class-1;
-oddsratio = zeros(3,size(data_X,2));
+oddsratio = zeros(3,size(data_X_c_missing,2));
 for i=1:num_nodes
     x_trn = data_X_c_missing(:,i);
     % remove NaN
     keeprows = ~isnan(x_trn) & ~isnan(y_trn);
     x_trn_2 = x_trn(keeprows);
     y_trn_2 = y_trn(keeprows);
-    [~,b_trn,se_trn,~,~] = drxlr_logistic_regression(x_trn_2,y_trn_2,300,1e-4);
-    or_trn = [b_trn(1),b_trn(1)-1.96*se_trn(1),b_trn(1)+1.96*se_trn(1)];
-    or_trn = exp(or_trn(1,:));
-    oddsratio(:,i) = or_trn';
-    str = sprintf('%d.%s : %4.2f(%4.2f,%4.2f)',i,labels{i},or_trn(1),or_trn(2),or_trn(3));
+    % continuous data - logistic fit
+    if numel(unique(x_trn_2))>2
+        [~,b_trn,se_trn,LR_chi2,~] = drxlr_logistic_regression(x_trn_2,y_trn_2,300,1e-4);
+        or_trn = [b_trn(1),b_trn(1)-1.96*se_trn(1),b_trn(1)+1.96*se_trn(1)];
+        or_trn = exp(or_trn(1,:));
+        oddsratio(:,i) = or_trn';
+        p = 1-chi2cdf(LR_chi2,1); % p-value from a likelihood ratio test
+    else % binary data - contingency table
+        x_disc = data_missing(i,:);
+        x_disc_2 = x_disc(keeprows);
+        [tbl,~,p] = crosstab(x_disc_2,y_trn_2);
+        if ~isempty(find(tbl(:)==0)) % when there is a zero count
+            tbl = tbl + 1; % add a pseudo count, this will give an inaccurate OR
+        end
+        or = (tbl(1)*tbl(4))/(tbl(2)*tbl(3));
+        se = sqrt(1/tbl(1) + 1/tbl(2) + 1/tbl(3) + 1/tbl(4));
+        or_trn = [or, or-1.96*se, or+1.96*se];     
+        oddsratio(:,i) = or_trn';  
+    end
+    str = sprintf('%d.%s : %4.2f(%4.2f,%4.2f), p=%0.2f',i,labels{i},or_trn(1),or_trn(2),or_trn(3),p);
     disp(str)      
 end
 event = numel(find(y_trn==1))/numel(y_trn)*100;
