@@ -5,12 +5,14 @@ function [found,loc] = occurrence(label,list)
 % label in the list (i)
 
 found = 0;
+loc = 0;
 for i = 1:numel(list)
     aaa = regexpi(label,list{i});
     if iscell(aaa)
         aaa = aaa{1};
-        loc=i; 
     end
-    found = found || ~isempty(aaa);    
-    
+    found = found || ~isempty(aaa);
+    if ~isempty(aaa)
+        loc = i;
+    end
 end

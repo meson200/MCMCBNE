@@ -161,7 +161,7 @@ end
 dataNoNansNorm = zscore(dataNoNans,1,2);
 
 % calculate pairwise distances between columns
-distances = pdist(dataNoNans',metric,distargs{:});
+distances = pdist(dataNoNansNorm',metric,distargs{:});
 
 % sort and get indices of nearest columns
 SqF = squareform(distances);
@@ -205,16 +205,28 @@ for count = 1:numel(rows)
                     weights = uWeights;
                 end
             end
-            val = wnanmean(dataVals,weights);
+        val = wnanmean(dataVals,weights);
         else
             val = nanmedian(dataVals);
         end
         if ~isnan(val)
-            imputed(rows(count),cols(count)) = val;
+            thatvar = data(rows(count),:);
+            thatvar = thatvar(~isnan(thatvar));
+            isbinary = numel(unique(thatvar))==2;
+            if ~isbinary          
+                imputed(rows(count),cols(count)) = val;
+            else
+                imputed(rows(count),cols(count)) = 1+round(val-1); 
+            end
             break
         end
     end
 end
+
+function m = wnanmode(x,weights)
+% weighted mode (voting), also ignores NaN
+
+
 
 
 function m = wnanmean(x,weights)

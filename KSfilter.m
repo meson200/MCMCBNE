@@ -50,9 +50,11 @@ for i = 1:nelim
         for m = 1:numel(elim_order)
             lst(lst==elim_order(m)) = []; % the eliminated variables can't form a blanket
         end
+        lst(lst==selected(j)) = []; % one can't eliminate oneself
+        %disp(lst);
         if k>0
             for m = 1:k
-                B(j,m) = lst(m+1); % choose the highest correlated variable(s) as a blanket
+                B(j,m) = lst(m); % choose the highest correlated variable(s) as a blanket
             end
             CE(j) = AvgCrossEnt(selected(j),B(j,:),data_X,class);
         else

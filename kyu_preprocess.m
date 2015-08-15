@@ -1,4 +1,4 @@
-function data_X = kyu_preprocess(data_raw,labels,pts_to_include,varargin)
+function [data_X,data_X_missing] = kyu_preprocess(data_raw,data_raw_missing,labels,pts_to_include,varargin)
 
 % creates a data matrix from the raw data imported from spreadsheets
 % inputs
@@ -11,6 +11,8 @@ function data_X = kyu_preprocess(data_raw,labels,pts_to_include,varargin)
 % 2. Rescale some variables if necessary (demanded by varargin)
 % varargin: varlable labels to be scaled (cell array), scaling factor (numeric array)
 
+
+
 labels_to_scale = [];
 if ~isempty(varargin) 
     labels_to_scale = varargin{1,1}; 
@@ -21,7 +23,7 @@ num_nodes = numel(labels);
 mi = zeros(num_nodes,1);
 bound = zeros(num_nodes,1); 
 data_X = zeros(num_cases,num_nodes);
-% choose only the variables chosen by the user
+% slice in only the variables chosen by the user
 for i = 1:size(data_raw,2)
     for j = 1:num_nodes 
         if strcmp(data_raw(1,i).name,labels{j})==1 
@@ -37,10 +39,13 @@ for i = 1:size(data_raw,2)
             end
             if sum(found)>0
                 rawdata = data_raw(i).value(pts_to_include)*sfacs(find(found));
+                rawdata_missing = data_raw_missing(i).value(pts_to_include)*sfacs(find(found));
             else    
                 rawdata = data_raw(i).value(pts_to_include);
+                rawdata_missing = data_raw_missing(i).value(pts_to_include);
             end
             data_X(:,j) = rawdata;
+            data_X_missing(:,j) = rawdata_missing;
         end
     end
 end

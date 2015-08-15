@@ -53,3 +53,20 @@ This is different from the obsolete kyu_BN_readdata_combine.m in:
 - In case of skewed distribution (resulting in 0 counts in a contingency
   table) a pseudo count of 1 is added to each cell of the table
 
+- 14 Aug 2015 Sangkyu Lee
+* knnimpute_kyu.m:
+- fixed the bug that gives a non-integer value when imputing 
+  binary variables
+* kyu_BN_readdata.m now reads a metadata .csv file that from which
+  units of the variables are imported 
+* added a plotting function kyu_plotbins.m for showing discretization 
+  distributions and bin boundaries
+* KSfilter.m: fixed a bug in setting a blanket
+  In low probability,a pair of variables could become identical, 
+  which creates error in setting a right blanket 
+  (although almost no impact on the selection results with the bug)
+* Stability_KS_localparallel.m: 
+  KSfilter can now be run parallel in a multicore local machine
+  
+
+
