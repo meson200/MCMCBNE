@@ -81,8 +81,8 @@ for i=1:num_nodes
     ind = vars(i);
     labels{i} = data_raw(ind).name{1,1};
 end 
-data_X_c_raw = kyu_preprocess(data_raw,labels,pts_to_include,[],[]);
-data_X_c_raw_missing = kyu_preprocess(data_raw_missing,labels,pts_to_include,[],[]);
+[data_X_c_raw,data_X_c_raw_missing] = kyu_preprocess(data_raw,data_raw_missing,labels,pts_to_include,[],[]);
+units = kyu_readmetadata(fullpath_meta,labels);
 studyid = studyid(pts_to_include);
 FracSize = FracSize(pts_to_include);
 NumFrac = NumFrac(pts_to_include);
@@ -111,18 +111,8 @@ studyid = studyid(FracFilter);
 % discretize
 [data_X,data_X_missing,b_filled,b_missing,mi] = kyu_discretize(data_X_c,data_X_c_missing,class,disc,bins);
 
-% eliminate missing data (for variable selection)
-data_X_forKS = data_X;
-class_forKS = class;
-rowtodelete = [];
-for i = 1:size(data_X,1)
-   if ~isempty(find(isnan(data_X_missing(i,:)))) 
-      rowtodelete = [rowtodelete i]; 
-   end
-end
-data_X_forKS(rowtodelete,:) = [];
-class_forKS(rowtodelete) = [];
-%mi = p;
+% plot discretization results
+kyu_plotbins(data_X_c,data_X_c_raw,b_filled,labels,units);
 
 %optional: Sparse PCA
 % for j = 5:num_nodes
