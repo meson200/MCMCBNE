@@ -10,7 +10,7 @@ dag_benchmark = args_graph.prior;
 mask_caus = args_graph.mask_caus;
 MCMC_maxlength = args_MCMC.ChainLength;
 NoInit = args_MCMC.NoInit;
-scoring_fn = args_MCMC.scoring_fn;
+scoring_fn = args_MCMC.ScoringFn;
 NoTopGraphs = args_MCMC.NoTopGraphs;
 MCMC_burnin = args_MCMC.Burnin;
 thinning = args_MCMC.thinning;
@@ -18,9 +18,9 @@ gsfreq = args_MCMC.gsfreq;
 maxfanin = args_MCMC.MaxParents;
 InitDensity = args_MCMC.InitDensity;
 beta_i = args_MCMC.InitBeta;
+alpha_d = args_MCMC.alpha_d;
 % here you can set ESS differently for each node
 alpha_d_nodes = alpha_d*ones(num_nodes,1);
-alpha_d_nodes(end) = 1;
 nodetypes = cell(num_nodes,1);
 nodetypes(:) = {'tabular'};
 dag_caus = ones(num_nodes,num_nodes) - mask_caus;
@@ -50,10 +50,10 @@ post = zeros(NoFolds,NoTopGraphs);
 betas = zeros(NoWorkers,len);
 betas_hist = zeros(NoFolds,201);
 
-parfor i=1:NoWorkers
+for i=1:NoWorkers
 
     % initialization of graphs
-    datalrn = data{mod(NoWorkers,NoFolds)+1};
+    datalrn = data{floor((i-1)/NoInit)+1};
     density = InitDensity*rand(1);
     MCMC_init_dag = kyu_generateDAG(dim,density,dag_caus);
     [sampled_graphs, bs_w, acr_w,~,~,lik_w,post_w] = learn_struct_mcmc_L1(datalrn, ns, dag_caus,dag_benchmark, 'nsamples', MCMC_maxlength,  ...

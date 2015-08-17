@@ -86,6 +86,7 @@ args_MCMC.InitBeta = 10; % beta(t=0). (biological prior only)
 args_MCMC.NoTopGraphs = 1000; % number of highest-posterior graphs to keep from MCMC samples (to save memory)
 args_MCMC.thinning = 10; % store every 1 out of k samples in a chain (to save memory, little change in posterior)
 args_MCMC.MaxParents = 3; % the maximum number of parents a node can have
+args_MCMC.gsfreq = 10000; 
 % cluster setting
 args_cluster = struct();
 args_cluster.cluster = clustername;
@@ -102,7 +103,7 @@ FoldsPerJob = 2;
 st = 1:FoldsPerJob:Nrand;
 Njobs = numel(st);
 NoWorkerstoReq = NoInit*FoldsPerJob+1;
-cluster = parcluster(clustername)
+%cluster = parcluster(clustername)
 if isempty(result)
 	result = cell(Njobs,1);
 end
