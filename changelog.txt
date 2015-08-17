@@ -75,3 +75,8 @@ This is different from the obsolete kyu_BN_readdata_combine.m in:
 * added parameter learning/classification testing modules
 * fixed a bug of returning nothing for ‘loc’ in occurrence.m 
 
+- 17 Aug 2015 Sangkyu Lee
+* fixed a bug in kyu_BN_trainMCMC_L1_BS.m
+* added a parallelization option for a KS filter 
+  (Stability_KS_localparallel.m)
+

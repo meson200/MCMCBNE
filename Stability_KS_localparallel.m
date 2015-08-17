@@ -18,7 +18,7 @@ function [selected,CElist,CEvar_avg,CErand,blanket,labels] = Stability_KS_localp
 % a frequency that a variable i is used as a blanket to remove a variable j
 % labels: a struct of the names of candidate variables to be filtered
 
-disc = 3; % K-means discretization
+disc = 2; % K-means discretization
 WhichFraction = 3; % include only conventioanl fx (fraction size < 3)
 BS_institution = 2; % when creating bootstrap samples, 
 %                     force the sampling to preserve the fraction of samples between source institution (1) or not (0)
