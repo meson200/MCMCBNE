@@ -57,8 +57,11 @@ This is different from the obsolete kyu_BN_readdata_combine.m in:
 * knnimpute_kyu.m:
 - fixed the bug that gives a non-integer value when imputing 
   binary variables
-* kyu_BN_readdata.m now reads a metadata .csv file that from which
-  units of the variables are imported 
+* kyu_BN_readdata.m now reads a metadata .csv file (kyu_readmetadata.m)
+  from which units of the variables are imported 
+* added kyu_readmetadata.m  
+* simplified kyu_preprocess.m to process datasets with and without NaN
+  at the same time 
 * added a plotting function kyu_plotbins.m for showing discretization 
   distributions and bin boundaries
 * KSfilter.m: fixed a bug in setting a blanket
@@ -68,5 +71,7 @@ This is different from the obsolete kyu_BN_readdata_combine.m in:
 * Stability_KS_localparallel.m: 
   KSfilter can now be run parallel in a multicore local machine
   
-
+- 16 Aug 2015 Sangkyu Lee
+* added parameter learning/classification testing modules
+* fixed a bug of returning nothing for ‘loc’ in occurrence.m 
 
