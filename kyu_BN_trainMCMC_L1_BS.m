@@ -50,7 +50,7 @@ post = zeros(NoFolds,NoTopGraphs);
 betas = zeros(NoWorkers,len);
 betas_hist = zeros(NoFolds,201);
 
-for i=1:NoWorkers
+parfor i=1:NoWorkers
 
     % initialization of graphs
     datalrn = data{floor((i-1)/NoInit)+1};
@@ -66,7 +66,7 @@ for i=1:NoWorkers
 
 end  
 
-parfor j = 1:NoFolds
+for j = 1:NoFolds
 
     start = NoInit*(j-1)+1;
     finish = NoInit*j;
