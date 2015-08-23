@@ -1,8 +1,8 @@
 function [selected,CEmin,CEvar,CE_rand,blanket] = KSfilter(data,labels,N,k,verbose)
 
 % Variable selection algorithm by Koller & Sahami (1996)
-% data_X_c: continuous data (for estimating correlation matrix)
-% data_X: discretized data (for probability estimation)
+% data: discretized data matrix. rows: variables, columns: instances (BNT format) 
+%       last row of data should be a class
 % N: desired number of variables to be selected
 % k: size of markov blanket
 % verbose: display messages (1) or not (0)
