@@ -62,6 +62,11 @@ for i = 1:nelim
         end    
     end
     [CEmin(i),E_ind] = min(CE);
+    MinIndice = find(CE == CEmin(i)); 
+    if numel(MinIndice)>1 % when multiple variables record minimum CE
+        RandInt = floor(1 + numel(MinIndice)*rand(1)); % pick one of them randomly
+        E_ind = MinIndice(RandInt);
+    end
     E = selected(E_ind); % eliminate the variable with the lowest cross-entropy (most redundant)
     CEvar(E) = CEmin(i);
     elim_order = [elim_order E];

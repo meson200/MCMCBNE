@@ -48,8 +48,10 @@ class_name = 'RP'; % choose your endpoint here. will be saved to an array "class
 dir_name = '~/Box Sync/SKyu/lungdata/';
 filename_bio = 'biomarkers_20150622.xls';
 filename_phy = 'dosimetry_clinical_20150709.xls';
+filename_meta = 'lung_metadata.csv';
 fullpath_bio = cat(2,dir_name,filename_bio);
 fullpath_phy = cat(2,dir_name,filename_phy);
+fullpath_meta = cat(2,dir_name,filename_meta);
 % read the WashU data first and obtain the list of variables from the user prompt 
 [data_raw_phy,data_raw_phy_missing,class,pts_to_include,studyid,FracSize] = kyu_readphysical(fullpath_phy,imp,class_name);
 [data_raw_bio,data_raw_bio_missing] = kyu_readbiomarkers(fullpath_bio,studyid,FracSize,imp);

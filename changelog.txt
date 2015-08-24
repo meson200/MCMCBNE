@@ -80,3 +80,9 @@ This is different from the obsolete kyu_BN_readdata_combine.m in:
 * added a parallelization option for a KS filter 
   (Stability_KS_localparallel.m)
 
+- 24 Aug 2015 Sangkyu Lee
+* KSfilter.m: fixed a bug that occurs when multiple variables record 
+  the same CE at each elimination round. In that case, one variable 
+  is randomly chosen 
+* kyu_BN_readdata.m: fixed a bug related to metadata import
+
