@@ -91,30 +91,36 @@ end
 %cross-entropy of a random variable wrt the class
 CE_rand_temp = zeros(100,1);
 for pp = 1:100
+    kk = zeros(nvar_original,1);
     randvec = round(rand(ndata,1));
     randvec = randvec + 1;
     CE_rand_temp(pp) = AvgCrossEnt(nvar_original+1,[],[data_X;randvec'],class);
-    CE_rand_temp(pp) = MIarray(randvec,class);
+    for uu = 1:nvar_original
+        kk(uu) = AvgCrossEnt(nvar_original+1,uu,[data_X;randvec'],class);
+    end
+    CE_rand_temp(pp) = median(kk);
 end
 CE_rand = median(CE_rand_temp);
 
-% varstr = [];
-% selected = [];
 varstr = [];
 for k = 1:numel(selected)
     varstr = strcat(varstr,',',labels{selected(k)});
-%     [found,loc] = kyu_occurrence(labels{k},labels_original);
-%     if loc>0
-%         selected = [selected loc];
-%     end 
 end
 if verbose>0
     disp(['variables selected: ',varstr]);
 end
 
 
-
 function CE = AvgCrossEnt(e,B,data_X,class)
+
+% evaluates an average cross entropy between the two distribution
+% P(C|B) and P(C|e,B) for measuring information gain with a variable e
+% under the presence of a blanket B
+% inputs: 
+% e: variable for which the information gain is evaluated
+% B: markov blanket of a class
+% data_X: data matrix, excludes a class
+% class: a 1D array for a class variable
 
 nB = numel(B);
 ncases = 2*(1+nB);
@@ -133,7 +139,7 @@ for i = 1:ncases
     Sub = cell(1,nB+1);
     [Sub{:}] = ind2sub(size_B_e,i);
     Sub2 = cell2num(Sub);
-    % compute P(C|B,e)
+    % compute p1 = P(C|B,e)
     temp1 = num2cell([1 Sub2]);
     temp2 = num2cell([2 Sub2]);
     ind_hi = sub2ind(size_c_B_e,temp1{:}); 
@@ -144,7 +150,7 @@ for i = 1:ncases
     else
         p1 = p1/sum(p1);
     end
-    % compute P(C|B)
+    % compute p2 = P(C|B)
     temp1 = num2cell([1 Sub2(1:end-1)]);
     temp2 = num2cell([2 Sub2(1:end-1)]);
     ind_hi = sub2ind(size_c_B,temp1{:}); 

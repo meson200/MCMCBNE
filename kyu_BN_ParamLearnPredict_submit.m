@@ -40,6 +40,8 @@ switch disc
         data_in = data.MI; % MMI based discretized data for graph learning
 end
 data_o = data_in.data_orig;
+patno_train = data_in.patients_train;
+patno_test = data_in.patients_test;
 trainmat_m = data_in.train_missing;
 if strcmp(whichinput,'missing')
     testmat_m = data_in.test_missing;
@@ -69,6 +71,10 @@ switch validation
         if trcmp(whichinput,'nointra')
             testmat_m{1} = remove_intra(testmat_m{1},labels);
         end
+        patno_train = {};
+        patno_train{1} = 1:npat;
+        patno_test = {};
+        patno_test{1} = 1:npat;
 end
 st = 1:FoldsPerJob:Nrand;
 Njobs = numel(st);
@@ -85,8 +91,8 @@ for p = 1:Njobs
     posts = post(index(start:finish),:);
     data_tr = trainmat_m(index(start:finish));
     data_test = testmat_m(index(start:finish));
-    pts_tr = data_in.patients_train(index(start:finish));
-    pts_test = data_in.patients_test(index(start:finish));
+    pts_tr = patno_train(index(start:finish));
+    pts_test = patno_test(index(start:finish));
     inputs = {graphs,posts,data_tr,data_test,FoldsPerJob,pts_tr,pts_test,ClassRate,EnsembleSizes,alpha_d};
     if strcmp(clustername,'serial')
         [Pr,Mt] = kyu_BN_BMA_serial(inputs{:});

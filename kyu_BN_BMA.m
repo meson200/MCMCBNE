@@ -24,13 +24,14 @@ function [Probs,Mreturn] = kyu_BN_BMA(gs_top,posterior,data_trn,data_test,Nrand,
 % Mreturn: polarity of dependency between nodes (Nnodes*Nnodes)
 % Mreturn(i,j)>0: P(j=2|i=2) > P(j=2|i=1) (positive correlation)
 
+useEM = 2; % use EM by default
 ns = 2*ones(1,size(data_trn{1},1));
 nvar = size(data_trn{1},1);
-MBig = cell(Nrand,1);
-occurBig = cell(Nrand,1);
 Prob_trn = cell(Nrand,1);
 Prob_test = cell(Nrand,1);
 NoTopGraphs = max(EnsembleSizes);
+Pos_big = cell(Nrand,numel(EnsembleSizes));
+Neg_big = cell(Nrand,numel(EnsembleSizes));
 
 parfor i = 1:Nrand
    trn = data_trn{i};
@@ -39,23 +40,26 @@ parfor i = 1:Nrand
    bnet1 = cell(NoTopGraphs,1);
    eg1 = cell(NoTopGraphs,1);
    gs = gs_top(i,:);
-   M = zeros(nvar,nvar);
    dagtemp = zeros(nvar,nvar);
+   Pos_row = cell(1,numel(EnsembleSizes));
+   Neg_row = cell(1,numel(EnsembleSizes));
+   pos = 0;
+   neg = 0;
    for j = 1:NoTopGraphs
-        [bnet1{j},eg1{j}] = kyu_BN_paramlearn(trn,gs{j},ns,alpha_d,2);
+        [bnet1{j},eg1{j}] = kyu_BN_paramlearn(trn,gs{j},ns,alpha_d,useEM);
         dagtemp = dagtemp + bnet1{j}.dag; 
-        M = M + dag_polarity(bnet1{j},eg1{j});
+        % pm: links with positive correlation, nm: negative
+        [pm,nm] = dag_polarity(bnet1{j},eg1{j});  
+        pos = pos + pm;
+        neg = neg + nm;
+        [ism,ind] = ismember(j,EnsembleSizes);
+        if ism
+            Pos_row{ind} = pos;
+            Neg_row{ind} = neg;
+        end
    end 
-   M = M./dagtemp;
-   M(isnan(M)) = 0;
-   MBig{i} = M;
-   occur = zeros(nvar,nvar);
-   for p = 1:nvar
-       for q = 1:nvar
-           if M(p,q) ~=0 occur(p,q) = 1; end
-       end
-   end
-   occurBig{i} = occur;
+   Pos_big(i,:) = Pos_row;
+   Neg_big(i,:) = Neg_row;
    Ps_test = kyu_BN_ClassPs_Bayesian(test,bnet1,eg1,NoTopGraphs);
    Ps_trn = kyu_BN_ClassPs_Bayesian(trn,bnet1,eg1,NoTopGraphs);
    [Prob_trn{i},Prob_test{i}] = PerfTest_group(test,trn,Ps_test,Ps_trn,PtsTest{i},PtsTrn{i},post,ClassRate,EnsembleSizes);
@@ -63,14 +67,18 @@ parfor i = 1:Nrand
 end
 
 Probs = struct('Prob_trn',Prob_trn,'Prob_test',Prob_test,'EnsembleSizes',EnsembleSizes);
-MSum = 0; 
-occurSum = 0;
-for i = 1:Nrand
-    MSum = MSum + MBig{i};
-    occurSum = occurSum + occurBig{i};
+Mreturn = cell(1,numel(EnsembleSizes));
+for j = 1:numel(EnsembleSizes)
+    pos_sum = 0;
+    neg_sum = 0;
+    for i = 1:Nrand
+        pos_sum = pos_sum + Pos_big{i,j};
+        neg_sum = neg_sum + Neg_big{i,j};
+    end
+    MM = (pos_sum - neg_sum)./(pos_sum + neg_sum);
+    MM(isnan(MM)) = 0;
+    Mreturn{j} = MM;
 end
-Mreturn = MSum./occurSum;
-Mreturn(isnan(Mreturn)) = 0;
 
 
 % ---------------------------subfunctions----------------------------------

@@ -25,7 +25,7 @@ for i = 1:size(cases,1)
     end
 end
 if option == 1
-    bnet = learn_params(bnet,data);
+    bnet = learn_params_ml(bnet,data);
     engine = jtree_inf_engine(bnet);
 else
      max_iter = 20;

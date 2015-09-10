@@ -86,3 +86,10 @@ This is different from the obsolete kyu_BN_readdata_combine.m in:
   is randomly chosen 
 * kyu_BN_readdata.m: fixed a bug related to metadata import
 
+- 10 Sep 2015 Sangkyu Lee
+* KSfilter.m: when estimating CE of a random variable, each input 
+variable is used as a blanket and an average over all possible blanket
+is taken. The resulting CE value might be higher than assuming no blanket
+* Solved function name conflict (learn_param.m) occurred at kyu_BN_paramlearn.m:
+  a new file learn_params_ml (ML learning of BN parameters) is uploaded 
+* Fixed minor bugs in kyu_ParamLearnPredict_submit.m and kyu_BN_BMA.m  
