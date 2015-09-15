@@ -6,7 +6,7 @@ function result = kyu_BN_GraphLearning_submit(data,ChainLength,whichprior,cluste
 %
 % inputs:
 % data: a struct array of bootstrap training data 
-% (created by kyu_BN_RP_CombinedModel_generateBSdata.m)
+% (created by kyu_BN_GeneratePartition.m)
 % ChainLength: the MCMC iterations required for the posterior to converge
 % (need to do the convergence test beforehand)
 % whichprior: 'biological' or 'prior'(default)

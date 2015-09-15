@@ -59,7 +59,7 @@ parfor i=1:NoWorkers
     density = InitDensity*rand(1);
     MCMC_init_dag = kyu_generateDAG(dim,density,dag_caus);
     [sampled_graphs, bs_w, acr_w,~,~,lik_w,post_w] = learn_struct_mcmc_L1(data, ns, dag_caus,dag_benchmark, 'nsamples', MCMC_maxlength,  ...
-                                                    'burnin',0,'scoring_fn',scoring_fn,'init_dag',MCMC_init_dag,'init_beta',beta_i, ...
+                                                    'burnin',MCMC_burnin,'scoring_fn',scoring_fn,'init_dag',MCMC_init_dag,'init_beta',beta_i, ...
                                                     'maxfanin',maxfanin,'type',nodetypes,'dirichlet',alpha_d_nodes);
     sampled_graphs_thinned = sampled_graphs(1:thinning:end); % thinning of sampled graphs    
     bs_thinned = bs_w(1:thinning:end);
@@ -93,7 +93,6 @@ betas = betas';
 % find the maximum posterior graph
 [betas_trend,betas_hist,mat_post,agree_caus,agree_ipa] = gs_stats(betas,gs,MCMC_checkpts,dag_benchmark,mask_caus,mask_ipa);
 [mat_freq_out,hist_peaked,top_dag] = matrix_hist(gs,gsfreq/thinning);
-accept_ratio = mean(accept_ratio,1);
 likmax = quantile(lik,0.9,1);
 likmin = quantile(lik,0.1,1);
 lik = mean(lik,1);
@@ -126,40 +125,4 @@ MCMCresults.L1track = Bl;
 MCMCresults.SampledT_small = timepts_small;
 MCMCresults.SampledT_large = timepts_large;
     
-    
-    % --------------------------old stuffs for K2 -------------------------
-    
-    
-%     % remove the weak links
-%     th = 3;
-%     [ix,iy] = find(weighted_graph<th);
-%     for k = 1:numel(ix)
-%         weighted_graph(ix(k),iy(k)) = 0;
-%     end
-%         
-%     % run the DMST algorithm to obtain a DAG
-%     disp('Finding the maximal spanning tree...')
-%     dag_mcmc = zeros(num_nodes);
-%     cost = (weighted_graph * -1)+MCMC_runs;
-%     for i=1:num_nodes
-%         cost(i,i) = 0;
-%     end
-%     A =  DirectedMinimalSpanningTree_OJH( cost,num_nodes ); % the last node (RP) will be a root
-%     %A =  MaximalDirectedMSF(weighted_graph);
-%     for i=1:num_nodes
-%         for j=1:num_nodes
-%             if A(i,j)~=0 dag_mcmc(i,j) = 1; else dag_mcmc(i,j) = 0;
-%             end
-%         end
-%     end
-% 
-%     % run a K2 algorithm to optimize a DAG
-%     disp('running K2...')
-%     dag_sparse = sparse(dag_mcmc);
-%     order = graphtopoorder(dag_sparse);
-%     dag_k2 = learn_struct_K2(data, ns, order);
-
-
-bnet_mcmc = 0;
-bnet_k2 = 0;
 
