@@ -98,3 +98,6 @@ is taken. The resulting CE value might be higher than assuming no blanket
 * Fixed the possible bug in kyu_BN_trainMCMC_L1_convtest when it is given a 
   non-zero burn-in length from kyu_BN_MCMC_convtest.m
 * kyu_BN_GraphLearning_submit.m: updated the help page
+
+- 17 Sep 2015 Sangkyu Lee
+* Fixed the bug in kyu_BN_GraphLearning_collect.m

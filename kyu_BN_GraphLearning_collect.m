@@ -8,7 +8,7 @@ post = [];
 beta = [];
 
 for i = 1:numel(result)
-    res = fetchOutputs(result{i});
+    res = result{i};
     gs_t = res{1};
     post_t = res{2};
     beta_t = res{3};
