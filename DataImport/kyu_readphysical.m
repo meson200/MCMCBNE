@@ -126,6 +126,10 @@ for k=1:size(txt,2)
             end
             data_raw(i).value = tmparray2;
             i = i+1;
+        case {'IP','central','COPD','ACEinhibitor'}    
+            data_raw(i).name = txt(1,k);
+            data_raw(i).value = num(:,k-offset)+1;
+            i = i+1;
         case {'V20_BED','V30_BED'}
         case {'rpdate','fibdate'}    
         otherwise    

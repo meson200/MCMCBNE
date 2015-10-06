@@ -9,9 +9,9 @@ function category = kyu_BN_RP_CategorizeVariables(labels)
 
 nvar = numel(labels);
 category = [];
-list_phy = {'MLD','MHD','V20','V30','FracSize','MLD_BED','PTVCOMSI'};
+list_phy = {'MLD','MHD','V5','V10','V20','V30','Vhot','FracSize','MLD_BED'};
 list_bio = {'a2m','TGF','IL','OPN','ACE','TNF'};
-list_cli = {'age','smoking'};
+list_cli = {'age','smoking','IP','COPD','central','PTVCOMSI'};
 list_spc = {'PTVvol'};
 
 for i=1:nvar

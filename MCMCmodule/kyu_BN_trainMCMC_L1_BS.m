@@ -73,7 +73,7 @@ for j = 1:NoFolds
     graphs = gs(start:finish,:);
     graphs = graphs';
     [DAGhistogram,~,~] = matrix_hist(graphs,gsfreq/thinning); 
-    histo = DAGhistogram(end);
+    histo = DAGhistogram(end); % only take the samples acquired at the end of the chain
     posterior = histo.frequency;
     ngraphs = length(posterior);
     if ngraphs < NoTopGraphs

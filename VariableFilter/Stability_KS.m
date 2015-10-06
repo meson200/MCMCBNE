@@ -18,9 +18,9 @@ function [selected,CElist,CEvar_avg,CErand,blanket,labels] = Stability_KS(blanke
 % a frequency that a variable i is used as a blanket to remove a variable j
 % labels: a struct of the names of candidate variables to be filtered
 
-disc = 3; % K-means discretization
+disc = 2; 
 WhichFraction = 3; % include only conventioanl fx (fraction size < 3)
-BS_institution = 1; % when creating bootstrap samples, 
+BS_institution = 0; % when creating bootstrap samples, 
 %                     force the sampling to preserve the fraction of samples between source institution (1) or not (0)
 
 [~,~,data_trn_missing,data_trn_c_missing,labels,mi,studyid,~,~] = kyu_BN_readdata(WhichFraction,disc);

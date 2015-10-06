@@ -101,3 +101,11 @@ is taken. The resulting CE value might be higher than assuming no blanket
 
 - 17 Sep 2015 Sangkyu Lee
 * Fixed the bug in kyu_BN_GraphLearning_collect.m
+
+- 6 Oct 2015 Sangkyu Lee
+* Added kyu_BN_univariate.m: evaluates univariate prediction using the 
+  variables in a dataset
+* organized files into folders. The files won't show any revision history in 
+  GitHub, but the following git command will show the history:
+  git log -p --follow individual_file_name
+

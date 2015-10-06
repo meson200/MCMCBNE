@@ -33,7 +33,7 @@ function [data,data_c,data_missing,data_c_missing,labels,mi,studyid,FracSize,COM
 % norm = 1: standardization (z-score) 
 % norm = 2: rescaling (min-max) 
 % norm = 3: standardization + hyper tangent mapping 
-norm = 1;
+norm = 0;
 % number of bins for discretization 
 bins = 2;
 % imputation method

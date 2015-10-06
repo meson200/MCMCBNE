@@ -82,9 +82,6 @@ for i = 1:nelim
         disp(str1);
         disp(str2);
     end
-    %labels(E) = [];
-    %data_X(E,:) = [];
-    %data_X_c(E,:) = [];
     
 end
 

@@ -22,7 +22,6 @@ function [Perfs_632p,Perfs_632pM] = kyu_Perf_632BSplus(Probs,Probs_fitting,data)
 % Perfs_632pM: stores the raw samples of the 5 performance metrics 
 
 
-
 % curves (first row) and 95% confidence intervals (second row)
 % columns are used for different ensemble sizes
 % Perfs_632pM: .632+ adjusted Probsormance for each bootstrap replicate
@@ -47,7 +46,13 @@ for i = 1:Nmodel
        setsize = numel(data_in.patients_test{m});
        row_end = row_start + setsize-1;
        Pmat = Probs.Prob_test(row_start:row_end,:);
-       [~,TPR_test(:,m),t_test(:,m),auc_test(m)] = perfcurve(Pmat(:,2),Pmat(:,i+2),2,'XVals',0:0.01:1,'UseNearest','off');
+       try
+            [~,TPR_test(:,m),t_test(:,m),auc_test(m)] = perfcurve(Pmat(:,2),Pmat(:,i+2),2,'XVals',0:0.01:1,'UseNearest','off');
+       catch % if a testing set is filled with one class
+            TPR_test(:,m) = NaN;
+            t_test(:,m) = NaN;
+            auc_test(m) = NaN;
+       end
        row_start = row_end+1;
     end
     [Perfs_632p.auc(1,i),Perfs_632p.auc(2,i),Perfs_632pM.auc(:,i)] = kyu_632plusbootstrap(auc_trn,auc_test,0.5);
@@ -57,10 +62,11 @@ for i = 1:Nmodel
     TPR_632p = zeros(101,1);
     TPR_632p_ste = zeros(101,1);
     for j = 1:101
-        % calculate no-information error rate (q)
+        % calculate no-information error rate (q) (Adler & Lausen 2009)
         ss = numel(Probs_fitting.Prob_trn(:,i+2));
         q = sum(Probs_fitting.Prob_trn(:,i+2)>t_trn(j));
         q = q/ss;
+        disp(q)
         [TPR_632p(j),TPR_632p_ste(j),TPR_list(j,:)] = kyu_632plusbootstrap(TPR_trn(j),TPR_test(j,:),q);
     end
     FPR = 0:0.01:1;
@@ -74,10 +80,11 @@ for i = 1:Nmodel
         sp_opt_list(m) = 1-FPR(maxindx);
     end
     
-    Perfs_632p.se_opt(1,i) = mean(se_opt_list);
-    Perfs_632p.se_opt(2,i) = 2*std(se_opt_list)/sqrt(Nrand);
-    Perfs_632p.sp_opt(1,i) = mean(sp_opt_list);
-    Perfs_632p.sp_opt(2,i) = 2*std(sp_opt_list)/sqrt(Nrand);
+    eq_sample_size = numel(find(~isnan(se_opt_list)));
+    Perfs_632p.se_opt(1,i) = nanmean(se_opt_list);
+    Perfs_632p.se_opt(2,i) = 2*nanstd(se_opt_list)/sqrt(eq_sample_size);
+    Perfs_632p.sp_opt(1,i) = nanmean(sp_opt_list);
+    Perfs_632p.sp_opt(2,i) = 2*nanstd(sp_opt_list)/sqrt(eq_sample_size);
     Perfs_632p.ROCY(:,i) = TPR_632p;
     Perfs_632p.ROCY_ste(:,i) = TPR_632p_ste;
     Perfs_632pM.se_opt(:,i) = se_opt_list';

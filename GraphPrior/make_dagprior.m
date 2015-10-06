@@ -37,9 +37,11 @@ category = kyu_BN_RP_CategorizeVariables(labels);
 % post -> pre (3->2)
 % biological_post -> physical (3->1)
 % physical -> biological_pre (1->2)
+% any variables -> clinical (*->4)
+% clinical -> physical (4->1)
 % all the links emanating from RP (5->1v2v3v4)
 links_forbidden = {[3,2],[1 2],[3,1],[5,1],[5,2],[5,3],[5,4],[2 5],...
-                   [3 4],[2,4],[1,4],[4,5],[4 1]};
+                   [3 4],[2,4],[1,4],[4 1]};
 % IPA prior (collected from IPA database in 08/14/2013)
 direct = {{'TGF','a2m'},{'IL6','a2m'},{'a2m','a2m'},{'IL6','IL6'},{'TGF','TGF'}};
 indirect = {{'TGF','OPN'},{'TGF','ACE'},{'TGF','IL6'},{'OPN','IL6'},{'ACE','ACE'},{'OPN','OPN'},{'IL6','PTVvol'},{'a2m','RP'},{'ACE','RP'},{'IL6','RP'},{'MLD','RP'},{'V30','RP'},{'V20','RP'}};

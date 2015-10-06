@@ -23,7 +23,7 @@ function data = kyu_BN_GeneratePartition(Npart,val)
 % phy: the test set containing probability estimates from physical models, set to zero 
 % *orig*: the source dataset 
 
-SBRTfilter = 2; % fractionation filter
+SBRTfilter = 3; % fractionation filter
 [data_trn_KM,data_trn_c_KM,data_trn_missing_KM,data_trn_c_missing_KM,labels,~,~,~,~] = kyu_BN_readdata(SBRTfilter,3);
 [data_trn_MI,data_trn_c_MI,data_trn_missing_MI,data_trn_c_missing_MI,~,~,studyID,FracSize,COMSI] = kyu_BN_readdata(SBRTfilter,2);
 labels = labels';

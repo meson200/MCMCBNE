@@ -1,4 +1,4 @@
-function [R,params] = kyu_BN_MCMC_convtest(data,ChainLength,whichprior,clustername)
+function [R,params] = kyu_BN_MCMC_convtest(data,ChainLength,whichprior,clustername,disc)
 
 % Run a MCMC graph search on a single training dataset 
 % the purpose is to monitor the convergence of posterior distribution
@@ -7,10 +7,11 @@ function [R,params] = kyu_BN_MCMC_convtest(data,ChainLength,whichprior,clusterna
 %
 % input:
 % data : a struct array of bootstrapped training data .
-% (created by kyu_BN_RP_CombinedModel_generateBSdata.m)
+% (created by kyu_BN_GeneratePartition.m)
 % ChainLength: MCMC iterations, should be long enough to capture the
 % convergence (~10^5 is acceptable for 8 nodes)
 % clustername: name of the cluster profile installed in your Matlab
+% disc: discretization method ('KM' or 'MI')
 %
 % output
 % *(T): evaluated at the interations specified in SampledT_large
@@ -34,8 +35,12 @@ function [R,params] = kyu_BN_MCMC_convtest(data,ChainLength,whichprior,clusterna
 % fields:
 % -graph: params related to graphs (nodes/priors/...)
 % -MCMC: params related to MCMC (burnin/initialization/...)
-
-data_in = data.KM; % k-means discretized data for graph learning
+switch disc
+    case 'KM'
+        data_in = data.KM; % k-means discretization
+    case 'MI'
+        data_in = data.MI; % MI discretiation
+end
 labels = data_in.Labels';
 num_nodes = numel(labels);
 ns = 2*ones(num_nodes,1); % every node has a binary state
@@ -67,13 +72,14 @@ args_graph.prior = prior; % a prior DAG (see make_dagprior.m)
 args_graph.priortype = whichprior;
 args_graph.mask_caus = mask_caus; % a mask matrix used for MCMC/causality (see make_dagprior.m)
 args_graph.mask_ipa = mask_ipa; % a DAG mask used for MCMC/biological prior (see make_dagprior.m)
+args_graph.disc = disc; % discretization method used
 % hyperparams for graph MCMC 
 args_MCMC = struct();
-args_MCMC.Burnin = 0; % burn in 
+args_MCMC.Burnin = 10000; % burn in 
 args_MCMC.ChainLength = ChainLength; % MCMC chain length (includes burn-in)
 args_MCMC.ScoringFn = 'bayesian'; % graph scoring function
 args_MCMC.alpha_d = 2; % equivalent sample size for dirichlet prior
-args_MCMC.NoInit = 25; % number of random initialization on graphs
+args_MCMC.NoInit = 24; % number of random initialization on graphs
 args_MCMC.InitDensity = 0.4; % degree of sparsity in DAG initialization 
 args_MCMC.InitBeta = 10; % biological prior hyperparameter beta at t=0
 args_MCMC.NoTopGraphs = 1000; % number of highest-posterior graphs to keep from MCMC samples (to save memory)
@@ -85,8 +91,8 @@ params = struct('graph',args_graph,'MCMC',args_MCMC);
 
 NoJobtoReq = args_MCMC.NoInit+1;
 cluster = parcluster(clustername)
-inputs = {data_trn,args_graphs,args_MCMC};
-j = batch(cluster,'kyu_BN_trainMCMC_L1_guillimin_convtest',1,inputs,'matlabpool',NoJobtoReq,'CurrentDirectory', '.');
+inputs = {data_trn,args_graph,args_MCMC};
+j = batch(cluster,'kyu_BN_trainMCMC_L1_convtest',1,inputs,'matlabpool',NoJobtoReq,'CurrentDirectory', '.');
 ok = wait(j,'finished',100000); % a job is forced to crash after spending 10^5 seconds in queue
 if ok
     R = fetchOutputs(j);
