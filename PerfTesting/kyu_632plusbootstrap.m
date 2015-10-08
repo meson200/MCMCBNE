@@ -27,8 +27,6 @@ for i = 1:Nrand
         R(i) = 0;
     end
     alpha = 0.632/(1-0.368*R(i));
-    mtest = m_test(i);
-    %mtest = max(m_test(i),gamma);
     BR(i) = alpha*(m_test(i)-m_trn);
 end
 m_632p = m_trn + nanmean(BR);

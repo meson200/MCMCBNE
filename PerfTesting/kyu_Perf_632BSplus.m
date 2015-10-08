@@ -19,19 +19,29 @@ function [Perfs_632p,Perfs_632pM] = kyu_Perf_632BSplus(Probs,Probs_fitting,data)
 % .ROCY: Y-axis points (TPR) of ROC curves. X-axis points are fixed at
 % regular intervals (0:0.01:1)
 % .ROCY_ste: 95% CE of ROC y values
+% .Prob632p: bootstrap .632+ estimate of class probability for each
+% examples in the original dataset
+% .Prob632p_CI: 95% CE of above
+
 % Perfs_632pM: stores the raw samples of the 5 performance metrics 
-
-
 % curves (first row) and 95% confidence intervals (second row)
 % columns are used for different ensemble sizes
-% Perfs_632pM: .632+ adjusted Probsormance for each bootstrap replicate
 
+% initialization
 Nmodel = numel(Probs.EnsembleSizes); % number of different ensemble sizes tested
 data_in = data.MI;
 Nrand = numel(data_in.train);
 Perfs_632p = struct('auc',zeros(2,Nmodel),'se_opt',zeros(2,Nmodel),'sp_opt',zeros(2,Nmodel),'ROCY',zeros(101,1));
 Perfs_632pM = struct('auc',zeros(Nrand,Nmodel),'se_opt',zeros(Nrand,Nmodel),'sp_opt',zeros(Nrand,Nmodel));
 ROCY_test = cell(Nmodel,1);
+Npatients = size(Probs.ProbByPat_trn,1);
+events = Probs.ProbByPat_trn(:,2);
+Pev = numel(find(events==2))/Npatients; % average event rate
+Pfit = Probs_fitting.Prob_trn;
+Ptest = Probs.Prob_test;
+Perfs_632p.Prob632p = Probs.ProbByPat_trn;
+Perfs_632p.Prob632p_CI = Probs.ProbByPat_trn;
+Perfs_632p.EnsembleSizes = Probs.EnsembleSizes;
 
 for i = 1:Nmodel
     
@@ -66,13 +76,15 @@ for i = 1:Nmodel
         ss = numel(Probs_fitting.Prob_trn(:,i+2));
         q = sum(Probs_fitting.Prob_trn(:,i+2)>t_trn(j));
         q = q/ss;
-        disp(q)
         [TPR_632p(j),TPR_632p_ste(j),TPR_list(j,:)] = kyu_632plusbootstrap(TPR_trn(j),TPR_test(j,:),q);
     end
     FPR = 0:0.01:1;
     FPR = FPR';
     se_opt_list = zeros(Nrand,1);
     sp_opt_list = zeros(Nrand,1);
+    
+    % from the ROC curves, find SE/SP at the optimal operating threshold 
+    % (maximum Youden's index) 
     for m =1:Nrand
         youden = TPR_list(:,m) + ones(101,1) - FPR;    
         [~,maxindx] = max(youden);
@@ -80,6 +92,16 @@ for i = 1:Nmodel
         sp_opt_list(m) = 1-FPR(maxindx);
     end
     
+    % get 0.632+ average P(class) for each instances in the original data
+    for j = 1:Npatients
+        pt_row_fit = find(Pfit(:,1)==j);
+        Ps_fit = Pfit(pt_row_fit,2+i);
+        pt_row_test = find(Ptest(:,1)==j);
+        Ps_test = Ptest(pt_row_test,2+i);  
+        [Perfs_632p.Prob632p(j,i+2),Perfs_632p.Prob632p_CI(j,i+2),~] = kyu_632plusbootstrap_prob(Ps_fit,Ps_test,Pev);
+    end
+    
+    % save the metrics into a struct
     eq_sample_size = numel(find(~isnan(se_opt_list)));
     Perfs_632p.se_opt(1,i) = nanmean(se_opt_list);
     Perfs_632p.se_opt(2,i) = 2*nanstd(se_opt_list)/sqrt(eq_sample_size);

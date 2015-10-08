@@ -109,3 +109,13 @@ is taken. The resulting CE value might be higher than assuming no blanket
   GitHub, but the following git command will show the history:
   git log -p --follow individual_file_name
 
+- 8 Oct 2015 Sangkyu Lee
+* kyu_Perf_632BSplus.m: added more elements to a 632 plus performance object 
+- an array of ensemble sizes 
+- 632+ bootstrap estimate of class prob. for each examples in the original data
+  (.Prob632p). Implemented in kyu_632plusbootstrap_prob.m
+* Added a reliability plot (kyu_ReliabilityPlot.m): 
+- takes a 632+ perf. object for BN ensemble models
+- groups patients into N risk groups, and plots actual vs. bootstrap estimated
+  probability from the model
+   
