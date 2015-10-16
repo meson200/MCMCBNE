@@ -29,9 +29,9 @@ This is different from the obsolete kyu_BN_readdata_combine.m in:
 - 8 Jul 2015 Sangkyu Lee
 
 * added a bootstrap customization option in KS_Stability.m
-- a variable “BS_institution”, when set to 1, force the sampling 
+- a variable √íBS_institution√ì, when set to 1, force the sampling 
   to preserve the fraction of samples between source institutions
-  which is indicated as the first letter of “studyid”
+  which is indicated as the first letter of √ístudyid√ì
 
 - 20 Jul 2015 Sangkyu Lee
 * kyu_BN_MCMC_convtest.m was modified so that:
@@ -39,7 +39,7 @@ This is different from the obsolete kyu_BN_readdata_combine.m in:
 
 - 28 Jul 2015 Sangkyu Lee
 * kyu_BN_readdata.m was modified 
-- having a column named ’NumFrac’ (number of fractions) is mandatory 
+- having a column named √ïNumFrac√ï (number of fractions) is mandatory 
   in the source spreadsheet, which is used to filter fractionation group 
 - SBRT cohort (SBRTfilter=3) is now defined as NumFrac<=5 (ASTRO policy)
 
@@ -73,7 +73,7 @@ This is different from the obsolete kyu_BN_readdata_combine.m in:
   
 - 16 Aug 2015 Sangkyu Lee
 * added parameter learning/classification testing modules
-* fixed a bug of returning nothing for ‘loc’ in occurrence.m 
+* fixed a bug of returning nothing for √îloc√ï in occurrence.m 
 
 - 17 Aug 2015 Sangkyu Lee
 * fixed a bug in kyu_BN_trainMCMC_L1_BS.m
@@ -119,3 +119,9 @@ is taken. The resulting CE value might be higher than assuming no blanket
 - groups patients into N risk groups, and plots actual vs. bootstrap estimated
   probability from the model
    
+- 16 Oct 2015 Sangkyu Lee
+* Averaging of class probability for each patient is now done in a separate function 
+  AverageProbability_PatbyPat.m (/Utilities/)
+  led to changes in kyu_BN_ParamLearnPredict_collect.m
+* uploaded a function for multivariate logistic model training kyu_LogisticMode.m
+* uploaded a DVH reading tools (DVH should be written in .csv by MIMvista)
