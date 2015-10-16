@@ -43,36 +43,15 @@ for p = 1:numel(TestSizes)
     polarity{p} =  polarity{p}/NJobs;
 end
 
-
 Probs.Prob_trn = ProbTrnTmp;
 Probs.Prob_test = ProbTestTmp;
-NoEnsembleSizes = numel(TestSizes);
-% instance-by-instance prediction result
-Probs.ProbByPat_trn = zeros(Npatients,NoEnsembleSizes+2);
-Probs.ProbByPat_test = zeros(Npatients,NoEnsembleSizes+2);
-Probs.ProbByPat_std_trn = zeros(Npatients,NoEnsembleSizes+2);
-Probs.ProbByPat_std_test = zeros(Npatients,NoEnsembleSizes+2);
-Mtrn = Probs.Prob_trn(:,3:NoEnsembleSizes+2);
-Mtest = Probs.Prob_test(:,3:NoEnsembleSizes+2);
-for i = 1:Npatients
-    
-    pt_row_trn = find(Probs.Prob_trn(:,1)==i);
-    pt_row_test = find(Probs.Prob_test(:,1)==i);
-    Pmat_trn = Mtrn(pt_row_trn,:);
-    Pmat_test = Mtest(pt_row_test,:);
-    Probs.ProbByPat_trn(i,1:2) = Probs.Prob_trn(pt_row_trn(1),1:2);
-    Probs.ProbByPat_test(i,1:2) = Probs.Prob_test(pt_row_test(1),1:2);
-    Probs.ProbByPat_std_trn(i,1:2) = Probs.Prob_trn(pt_row_trn(1),1:2);
-    Probs.ProbByPat_std_test(i,1:2) = Probs.Prob_test(pt_row_test(1),1:2);
-    
-    Probs.ProbByPat_trn(i,3:end) = mean(Pmat_trn,1);
-    Probs.ProbByPat_std_trn(i,3:end) = std(Pmat_trn,1,1)/sqrt(Nfolds)*2;
-    Probs.ProbByPat_test(i,3:end) = mean(Pmat_test,1);
-    Probs.ProbByPat_std_test(i,3:end) = std(Pmat_test,1,1)/sqrt(Nfolds)*2;
-
-end
-Probs.polarity = polarity;
 Probs.EnsembleSizes = TestSizes;
+
+% average out the predicted probabilities to obtain 
+% bootstrap average class probability for each instance
+Probs = AverageProbability_PatbyPat(Probs,Nfolds);
+Probs.polarity = polarity;
+
 
 
 

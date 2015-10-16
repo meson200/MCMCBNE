@@ -104,13 +104,34 @@ for k=1:size(txt,2)
                 %end
                 FracSize(u) = num(u,k-offset);
             end  
-        case {'chemo','tumorstage'}
+        case 'chemo'
             %data_raw(i).name = txt(1,k);
             %data_raw(i).value = txt(2:end,k);
-            %i = i+1;
+            %i = i+1;\
+        case 'tumorstage'
+            tmparray = txt(2:end,k);
+            tmparray_num = num(1:end,k-offset);
+            % solve the issue that '3A' is read as string and '3' as
+            % numeric
+            ttt = find(~isnan(tmparray_num));
+            tmparray(ttt) = strread(num2str(tmparray_num(ttt)'),'%s');
+            
+            tmparray2 = zeros(samplesize,1);
+            data_raw(i).name = txt(1,k);
+            for u = 1:samplesize
+                if isempty(tmparray{u}) 
+                    tmparray2(u) = NaN;
+                elseif length(tmparray{u})>1 % stage 3A and 3B -> counts as 3
+                    tmparray2(u) = str2num(tmparray{u}(1));
+                else
+                    tmparray2(u) = num(u,k-offset);
+                end
+            end
+            data_raw(i).value = tmparray2;
+            i = i+1;
         case 'smoking'    
             tmparray = txt(2:end,k);
-            tmparray2 = zeros(samplesize,1);
+            
             data_raw(i).name = txt(1,k);
             for u = 1:samplesize
                switch tmparray{u}

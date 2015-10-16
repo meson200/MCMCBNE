@@ -1,43 +1,34 @@
-function [w_opt,lambda_opt,bestperf] = kyu_LR_CV(X_train,Y_train,L,CVrep,CVsize,ID,varargin)
+function [w_opt,lambda_opt,bestperf] = kyu_LR_CV(X_train,Y_train,ID,args_logistic)
 
 % regularized logistic regression
 % inputs:
 % L: order of regularization
 % lambda: a list of different lambda values to test
+
+% optional arguments:
+% 'metric': which metric to use for choosing the best L2 coefficient
+%           'MSE' (mean square error) or 'AUC' (area under the ROC curve)
+% 'cutoff': decision making boundary on logistic probability
+%           y=2 when P(X)>cutoff, 1 otherwise
+%           default = 0.5
+%           doesn't affect AUC (b/c all the cutoff values are averaged)
 % outputs:
 % w_opt: logistic model coefficients (the last element is an intercept)
 % lambda_opt: the optimized lambda value 
 % bestperf: 
 
-args = varargin;
-nargs = length(args);
-metric = 'MSE'; % MSE is the default evaluation metric
-for i=1:2:nargs
- switch args{i},
-  case 'metric'
-      metric = args{i+1};
-  case 'cutoff'
-      cutoff = args{i+1};
-  end
-end
+CVrep = args_logistic.CVrep; % number of repetition that shuffles CV partitioning
+CVsize = args_logistic.CVsize; % size of cross validation set
+L = args_logistic.L; % order of a regularization term
+lambda = args_logistic.lambda; % choices of lambda to try
+alpha = args_logistic.alpha; % elastic regression params. used only when L=1
+metric = args_logistic.metric; % which metric to use for choosing the best L2 coefficient
+cutoff = args_logistic.cutoff;
+maxiter = args_logistic.maxiter;
 
-l = size(X_train,1);
-%X_train = [X_train ones(l,1)];
 % initialize parameters
+l = size(X_train,1);
 npar = size(X_train,2);
-maxiter = 500; % maximum iteration for logistic regression
-
-% range of values for RP model
-%lambda = logspace(-4,3,10);
-
-%lambda = [0.005 0.01 0.02 0.04 0.1 0.2 0.4];
-lambda = [0.2 0.5 1 2 3 4 6];
-alpha = 0.5;
-
-% range of values for texture
-%lambda = [0.001 0.002 0.004 0.008 0.016];
-%lambda = [0.001];
-
 err_trntrn = zeros(numel(lambda),CVrep);
 ROCcurves = cell(numel(lambda),1);
 lst = zeros(numel(lambda),4);
@@ -71,16 +62,6 @@ for i = 1:numel(lambda)
             
             % added on July 23, for the combined dataset only
             [perf_temp(k,:),~,~,p_RP_temp,~] = kyu_LR_perftest(data_val,npar,w,ID,cutoff);
-%            p_RP_temp = [];
-%            lsttmp = [0 0 0 0];
-%             for j = 1:CVsize
-%                [acc_inc,lst_inc,pRPseg] = kyu_LR_classify(data(:,j),w); 
-%                %if acc_inc ==0 wrongpts = [wrongpts j]; end
-%                p_RP_temp = [p_RP_temp pRPseg];
-%                acc = acc + acc_inc;   
-%                lsttmp = lsttmp + lst_inc;
-%             end
-%            lst(i,:) = lst(i,:) + lsttmp;
             p_RP = [p_RP p_RP_temp];
             err_trntrn(i,k) = (h_trntrn - Y_trntrn)'*(h_trntrn - Y_trntrn)/(2*(l-CVsize));
             err_trnval(i,k) = (h_trnval - Y_trnval)'*(h_trnval - Y_trnval)/(2*CVsize); 
