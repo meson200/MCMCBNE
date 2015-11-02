@@ -93,9 +93,15 @@ for i = 1:Npart
             sb_cases = pts_train{i}; 
             leftout = pts_test{i};
         else
-            pot = 1:SampleSize;
-            sb_cases = randsample(pot,SampleSize,true);
-            leftout = setdiff(pot,sb_cases);
+            ok = false;
+            while ~ok
+                pot = 1:SampleSize;
+                sb_cases = randsample(pot,SampleSize,true);
+                leftout = setdiff(pot,sb_cases);
+                % accept the random draw only when there are more than 2
+                % classes in the testing set
+                ok = numel(unique(data(end,leftout))) > 1; 
+            end
         end
         Ds.patients_train{i} = sb_cases;
         Ds.patients_test{i} = leftout;

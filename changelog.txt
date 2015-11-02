@@ -125,3 +125,13 @@ is taken. The resulting CE value might be higher than assuming no blanket
   led to changes in kyu_BN_ParamLearnPredict_collect.m
 * uploaded a function for multivariate logistic model training kyu_LogisticMode.m
 * uploaded a DVH reading tools (DVH should be written in .csv by MIMvista)
+
+- 2 Nov 2015 Sangkyu Lee
+* getDVHmetrics.m can now compute gEUD. However, this added one more required 
+  input argument ‘a’ (a volume parameter from the gEUD model)
+* Modified a bootstrap set generation scheme kyu_BN_GeneratePartition.m so that
+  randomly sampled testing sets always have both of classes (otherwise AUC wouldn’t
+  be able to be calculated)
+* added a function that delineates a graph consisting of robust connections 
+  estimated from bootstrap tests (can be found in /ParameterLearning/)
+
