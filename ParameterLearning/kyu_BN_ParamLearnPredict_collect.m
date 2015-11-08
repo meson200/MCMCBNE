@@ -1,4 +1,4 @@
-function [Probs,polarity] = kyu_BN_ParamLearnPredict_collect(data,ClusterOutput)
+function ProbsObject = kyu_BN_ParamLearnPredict_collect(data,ClusterOutput)
 
 % combine batched jobs for classification test into a single struct  
 % input: 
@@ -6,8 +6,8 @@ function [Probs,polarity] = kyu_BN_ParamLearnPredict_collect(data,ClusterOutput)
 % ClusterOutput: output of kyu_BN_ParamLearnPredict_submit
 %
 % output:
-% Probs: class probability for every training/testing instances in every
-% BS/CV folds
+% ProbsObject: an object containing class probability for each instances as
+% well as polarity of influences between nodes
 % .Prob_trn: P(class=2) for the patients (IDs in the 1st column) encountered during training,
 % contains duplicates. 2nd column is the true value of a class
 % .Prob_test: P(class=2) for the patients in the bootstrap OOB samples
@@ -43,14 +43,14 @@ for p = 1:numel(TestSizes)
     polarity{p} =  polarity{p}/NJobs;
 end
 
-Probs.Prob_trn = ProbTrnTmp;
-Probs.Prob_test = ProbTestTmp;
-Probs.EnsembleSizes = TestSizes;
+ProbsObject.Prob_trn = ProbTrnTmp;
+ProbsObject.Prob_test = ProbTestTmp;
+ProbsObject.EnsembleSizes = TestSizes;
 
 % average out the predicted probabilities to obtain 
 % bootstrap average class probability for each instance
-Probs = AverageProbability_PatbyPat(Probs,Nfolds);
-Probs.polarity = polarity;
+ProbsObject = AverageProbability_PatbyPat(ProbsObject,Nfolds,Npatients);
+ProbsObject.polarity = polarity;
 
 
 

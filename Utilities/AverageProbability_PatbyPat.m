@@ -1,4 +1,4 @@
-function Probs = AverageProbability_PatbyPat(Probs,Nfolds)
+function Probs = AverageProbability_PatbyPat(Probs,Nfolds,Npatients)
 
 % average out the predicted probabilities in an object Probs 
 % to obtain bootstrap average class probability for each instance

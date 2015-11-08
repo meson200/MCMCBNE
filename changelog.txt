@@ -135,3 +135,15 @@ is taken. The resulting CE value might be higher than assuming no blanket
 * added a function that delineates a graph consisting of robust connections 
   estimated from bootstrap tests (can be found in /ParameterLearning/)
 
+- 8 Nov 2015 Sangkyu Lee
+* Fixed a bug in AverageProbability_PatbyPat.m
+* An output argument “polarity” of kyu_BN_ParamLearnPredict_collect.m is now
+  a part of one struct variable “” that contains all the parameter learning 
+  results
+* kyu_BN_FindRobustStruct.m: 
+- Instead of an input argument, an ensemble size is now input via a user prompt during
+  function execution. When a user inputs an ensemble size that was not tested, the 
+  closest match in ProbsObject.EnsembleSizes is used
+- Statistical significance of the links is formally tested using t-distribution: 
+  The confidence level should be significantly (p<0.05) higher than a cutoff value
+  by Scutari (2013) 

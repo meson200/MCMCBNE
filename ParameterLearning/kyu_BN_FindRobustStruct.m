@@ -1,18 +1,36 @@
-function Wg = kyu_BN_FindRobustStruct(MCMCresults,NoGraphs,data_in,polarity)
+function Wg = kyu_BN_FindRobustStruct(MCMCresults,data_in,ProbsObject)
 
 % build a summarizing graph showing robust links and polarity of the links
 % inputs
 % this function can be called after a parameter training is finished
 % MCMCresults: output of MCMC simulation (output of kyu_BN_GraphLearning_collect.m)
-% NoGraphs: number of graphs to average
 % data_in: folds of data used for graph/parameter training
 % polarity: a matrix indicating polarity of correlation
 % (output of kyu_BN_ParamLearnPredict_collect.m)
 % polarity(i,j) = 1/-1: pos./neg. correlation between a variable i and j
+% reference: Scutari (2013), On the Prior and Posterior Distributions Used
+% in Graphical Modelling, Bayesian Analysis 8(1), pp.1-28
+
+InputCorrect = false;
+while ~InputCorrect
+    resp = input('enter the ensemble size to average: ','s');
+    try
+        temp = textscan(resp,'%f');
+        InputCorrect = ~isempty(temp);
+        InputNo = temp{1};
+    catch
+        disp('input not numeric!');
+        InputCorrect = false; 
+    end
+end
+[~,ix] = min(abs(ProbsObject.EnsembleSizes-InputNo));
+NoGraphs = ProbsObject.EnsembleSizes(ix);
+disp(['The closest match: an ensemble size ',num2str(NoGraphs)]);
 
 gs_top20 = MCMCresults.gs_top(:,1:NoGraphs);
 post = MCMCresults.posterior(:,1:NoGraphs);
 labels = data_in.KM.Labels;
+polarity = ProbsObject.polarity{ix};
 
 NumFolds = size(gs_top20,1);
 NumStruct = size(gs_top20,2);
@@ -24,6 +42,7 @@ Cnt = zeros(size(gs_top20{1,1}));
 conf_cutoff = 0.25+1/(4*(NumNodes-1)); 
 % take an average of BN graphs in an ensemble to yield a confidence level at each link 
 % when taking an average, each graph is weighted by posterior
+WgCell = repmat({zeros(1,NumFolds)},NumNodes,NumNodes);
 for i = 1:NumFolds
     Wgpart = 0;
     for j = 1:NumStruct
@@ -31,14 +50,18 @@ for i = 1:NumFolds
         Wgpart = Wgpart + newmat*post(i,j);
     end
     Wgpart = Wgpart/sum(post(i,1:NumStruct));
-    Wg = Wg + Wgpart;
+    for d1 = 1:NumNodes
+        for d2 = 1:NumNodes
+            WgCell{d1,d2}(i) = Wgpart(d1,d2);
+        end
+    end
 end
 % convert the average graph to a robust structure 
-% using the cutoff value 
-Wg = Wg/NumFolds;
+% using the cutoff value
+Wg = cellfun(@mean,WgCell);
 for i = 1:size(Wg,1)
     for j = 1:size(Wg,1)
-        if Wg(i,j)>conf_cutoff 
+        if Wg(i,j)>conf_cutoff && ttest(WgCell{i,j}-conf_cutoff)
             Cnt(i,j) = 1; 
         end
     end
@@ -61,9 +84,9 @@ WgSparse = sparse(Wg);
 Ws = nonzeros(WgSparse);
 [WsSorted,I] = sort(Ws,'descend');
 for i = 1:length(Ws)
-    if Ws(I(i))>conf_cutoff
-       indx = row(I(i));
-       indy = col(I(i));
+    indx = row(I(i));
+    indy = col(I(i));
+    if Ws(I(i))>conf_cutoff && ttest(WgCell{indx,indy}-conf_cutoff)
        str = sprintf('%s -> %s : delta=%1.4f, polarity=%d',labels{indx},labels{indy},Wg(indx,indy),sign(polarity(indx,indy)));
        disp(str);   
     end
@@ -120,7 +143,11 @@ maxT = 9;
 minT = 1;
 width = (weight-minW)*(maxT-minT)/(maxW-minW);
 
+% temporary function made to enable double indexing
+function listout = SetValue(listin,index,value)
 
+listout = listin;
+listout(index) = value;
 
 
 
