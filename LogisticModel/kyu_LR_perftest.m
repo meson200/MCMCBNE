@@ -19,14 +19,15 @@ ppv = lst(1)/(lst(1)+lst(2));
 npv = lst(3)/(lst(3)+lst(4));
 if lst(1:2) == [0 0] ppv = NaN; end
 if lst(3:4) == [0 0] npv = NaN; end
-if numel(unique(p_RP(1,:))) > 1
+try
     [ROC_X,ROC_Y,th,auc] = perfcurve(p_RP(1,:),p_RP(2,:),2,'XVals',0:0.01:1,'UseNearest','off');
     ROCXY = [ROC_X ROC_Y];
-else
-    th = NaN;
+catch
     ROCXY = [];
+    th = NaN;
     auc = NaN;
 end
+
 mcc_no = lst(1)*lst(3)-lst(2)*lst(4);
 mcc_de = (lst(1)+lst(2))*(lst(1)+lst(4))*(lst(3)+lst(2))*(lst(3)+lst(4));
 mcc_de = sqrt(mcc_de);

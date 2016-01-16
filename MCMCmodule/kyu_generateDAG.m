@@ -1,40 +1,30 @@
-function dag_random = kyu_generateDAG(dim,density,dag_caus)
+function dag_random = kyu_generateDAG(dag_caus,density,maxfi)
 
-% randomly generates a DAG with a given dimension (dim) 
-% and the density of nodes (density:0-1)
+% randomly generates a DAG from a given causality constraint (dag_caus) 
+% the DAG has to pass two tests:
+% 1) no loop
+% 2) fan in to every node <= maxfi
+% an input variable 'density' is the number of links you desire in the
+% randomly sampled graph
 
-dag_random = zeros(dim);
-isdag=false;
-%count = 1;
+dim = size(dag_caus);
+[ix,iy] = find(dag_caus);
+
+isdag = false;
 while ~isdag
-   %count = count+1;
-   %disp(count)
-   R = sprand(dim(1),dim(2),density);
-   for i = 1:dim(1)
-       for j = 1:dim(2)
-         if i==j 
-             R(i,j) = 0; 
-         elseif R(i,j)>0.5
-             R(i,j) = 1;
-         else
-             R(i,j) = 0;
-         end
-       end
-   end
-   % check cyclicity
-   RR = reachability_graph(R);
+
+    R = zeros(dim); 
+    indx_s = randsample(length(ix),density,false);
+    %R([ix(indx_s) iy(indx_s)]) = 1;
+    for i = 1:density
+       R(ix(indx_s(i)),iy(indx_s(i))) = 1;
+    end
+    % check cyclicity
+    RR = reachability_graph(R);
+    % check maximum fan in
+    tmp = sum(R,1) - maxfi*ones(1,dim(1));
+    ind_c = find(max(0,tmp)); % detect a child which would exceed max num of parents
+    isdag = ~any(diag(RR)==1) && isempty(ind_c);
    
-   % check causality
-   noncausal = 0;
-   if ~isempty(dag_caus)
-       for i = 1:dim(1)
-            for j = 1:dim(2)
-                if dag_caus(i,j) == 0 && R(i,j) == 1
-                    noncausal = 1;
-                end
-            end
-       end
-       isdag = ~any(diag(RR)==1) && ~noncausal;
-   end
 end
-dag_random = full(R);  
+dag_random = R;

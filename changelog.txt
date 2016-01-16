@@ -121,8 +121,7 @@ is taken. The resulting CE value might be higher than assuming no blanket
    
 - 16 Oct 2015 Sangkyu Lee
 * Averaging of class probability for each patient is now done in a separate function 
-  AverageProbability_PatbyPat.m (/Utilities/)
-  led to changes in kyu_BN_ParamLearnPredict_collect.m
+  AverageProbability_PatbyPat.m (/Utilities/) which led to changes in kyu_BN_ParamLearnPredict_collect.m
 * uploaded a function for multivariate logistic model training kyu_LogisticMode.m
 * uploaded a DVH reading tools (DVH should be written in .csv by MIMvista)
 
@@ -147,3 +146,19 @@ is taken. The resulting CE value might be higher than assuming no blanket
 - Statistical significance of the links is formally tested using t-distribution: 
   The confidence level should be significantly (p<0.05) higher than a cutoff value
   by Scutari (2013) 
+
+- 15 Jan 2016 Sangkyu Lee
+* Data import, pre-processing, and validation modules are revamped to accommodate external validation:
+- An object (obj_pp) saving pre-processing parameters (imputation/discretization/normalization) is created within kyu_BN_readdata.m 
+- obj_pp is created for training data import and returned as an output argument for
+  kyu_BN_readdata.m. For creating a validation dataset, obj_pp is now given as
+  an optional input argument kyu_BN_readdata.m.
+- kyu_BN_ParamLearnPredict_submit now has an option for external validation available using ÔexternalÕ for an input parameter ÔvalidationÕ
+* Added kyu_BN_FindRobustStruct: an improved version of graphical display of an BN ensemble 
+* kyu_readbiomarkers.m: error handling for imputation (displays warning when there is no data to use)
+* kyu_generateDAG changed its input parameters: now it requires maximum fan in (maxfanin) as an input variable
+- kyu_BN_trainMCMC_L1_BS.m and kyu_BN_trainMCMC_L1_convtest, which call this function, were corrected accordingly 
+
+
+  
+     

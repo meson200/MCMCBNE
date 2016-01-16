@@ -4,8 +4,11 @@ function data = kyu_BN_GeneratePartition(Npart,val)
 % original dataset
 %
 % input
-% Npart: number of partitions 
-% val: validation method. 'CV' (cross validation) or 'BS' (bootstrap)
+% Npart: number of partitions. 1 for external validation 
+% val: validation method. 
+% -'CV': cross validation
+% -'BS': bootstrap
+% -'EV': external validation
 %
 % output 
 % data: consists of two bootstrap sample sets
@@ -23,44 +26,70 @@ function data = kyu_BN_GeneratePartition(Npart,val)
 % phy: the test set containing probability estimates from physical models, set to zero 
 % *orig*: the source dataset 
 
+% enter the name of a class variable here
+class_name = 'RP';
+% set your filters here:
 SBRTfilter = 3; % fractionation filter
-[data_trn_KM,data_trn_c_KM,data_trn_missing_KM,data_trn_c_missing_KM,labels,~,~,~,~] = kyu_BN_readdata(SBRTfilter,3);
-[data_trn_MI,data_trn_c_MI,data_trn_missing_MI,data_trn_c_missing_MI,~,~,studyID,FracSize,COMSI] = kyu_BN_readdata(SBRTfilter,2);
-labels = labels';
-% find which variables are biomarkers
-category = kyu_BN_RP_CategorizeVariables(labels);
-% before changing, see the category assignment in kyu_BN_RP_CategorizeVariables.m
-nbio = find(category==2 | category==3); 
-num_nodes = numel(labels)+1;
-trn_cases = size(data_trn_KM,2);
-labels{num_nodes} = 'RP';
+Instfilter_trn = {'C','L'};
+Instfilter_val = {'L'};
 
-% physical model prediction currently set to zero
-% make your own physics model here (TCP,NTCP)
-% PhyModels = TCP(studyID,FracSize,...) 
-PhyModels = zeros(trn_cases,4);
+if strcmp(val,'EV')
+    
+    disc = 2; % use MI discretization
+    [data.MI.train,data.MI.train_c,data.MI.train_missing,data.MI.train_c_missing,data.MI.Labels,~,~,~,~,obj_pp]...
+    = kyu_BN_readdata(SBRTfilter,Instfilter_trn,disc);
+    [data.MI.test,data.MI.test_c,data.MI.test_missing,data.MI.test_c_missing,~,~,~,~,~,~]...
+    = kyu_BN_readdata(SBRTfilter,Instfilter_val,4,obj_pp);
+    data.MI.data_orig = data.MI.train;
+    data.MI.test_nointra = remove_intra(data.MI.test_missing,data.MI.Labels);
+    disc = 3; % use KM discretization
+    [data.KM.train,data.KM.train_c,data.KM.train_missing,data.KM.train_c_missing,data.KM.Labels,~,~,~,~,obj_pp]...
+    = kyu_BN_readdata(SBRTfilter,Instfilter_trn,disc);
+    [data.KM.test,data.KM.test_c,data.KM.test_missing,data.KM.test_c_missing,~,~,~,~,~,~]...
+    = kyu_BN_readdata(SBRTfilter,Instfilter_val,4,obj_pp);
+    data.KM.data_orig = data.KM.train;
+    data.KM.test_nointra = remove_intra(data.KM.test_missing,data.KM.Labels);
 
-if strcmp(val,'BS') % bootstrap validation
-    data_KM = PutData([],[],Npart,nbio,labels,data_trn_KM,data_trn_c_KM,data_trn_missing_KM,data_trn_c_missing_KM,PhyModels);
-    pts_train = data_KM.patients_train; 
-    pts_test = data_KM.patients_test; 
-else % cross-validation
-    % generate partitions
-    c = cvpartition(1:trn_cases,'KFold',Npart);
-    for count = 1:Npart
-        sb_cases = 1:trn_cases;
-        idx_end = sum(c.TestSize(1:count));
-        idx_start = idx_end-c.TestSize(count)+1;
-        sb_cases(idx_start:idx_end) = [];
-        leftout = idx_start:idx_end;
-        pts_train{count} = sb_cases; 
-        pts_test{count} = leftout;
+else
+    [data_trn_KM,data_trn_c_KM,data_trn_missing_KM,data_trn_c_missing_KM,labels,~,~,~,~] = kyu_BN_readdata(SBRTfilter,Instfilter_trn,3);
+    [data_trn_MI,data_trn_c_MI,data_trn_missing_MI,data_trn_c_missing_MI,~,~,studyID,FracSize,COMSI] = kyu_BN_readdata(SBRTfilter,Instfilter_trn,2);
+    labels = labels';
+    trn_cases = size(data_trn_KM,2);
+    % physical model prediction currently set to zero
+    % make your own physics model here (TCP,NTCP)
+    % PhyModels = TCP(studyID,FracSize,...) 
+    PhyModels = zeros(trn_cases,4);
+    % find which variables are biomarkers
+    category = kyu_BN_RP_CategorizeVariables(labels);
+    % before changing, see the category assignment in kyu_BN_RP_CategorizeVariables.m
+    nbio = find(category==2 | category==3); 
+    if strcmp(val,'BS') % bootstrap validation
+        data_KM = PutData([],[],Npart,nbio,labels,data_trn_KM,data_trn_c_KM,data_trn_missing_KM,data_trn_c_missing_KM,PhyModels);
+        pts_train = data_KM.patients_train; 
+        pts_test = data_KM.patients_test; 
+    else strcmp(val,'CV') % cross-validation
+        % generate partitions
+        c = cvpartition(1:trn_cases,'KFold',Npart);
+        pts_train = cell(Npart,1);
+        pts_test = cell(Npart,1);
+        for count = 1:Npart
+            sb_cases = 1:trn_cases;
+            idx_end = sum(c.TestSize(1:count));
+            idx_start = idx_end-c.TestSize(count)+1;
+            sb_cases(idx_start:idx_end) = [];
+            leftout = idx_start:idx_end;
+            pts_train{count} = sb_cases; 
+            pts_test{count} = leftout;
+        end
+        data_KM = PutData(pts_train,pts_test,Npart,nbio,labels,data_trn_KM,data_trn_c_KM,data_trn_missing_KM,data_trn_c_missing_KM,PhyModels);
     end
-    data_KM = PutData(pts_train,pts_test,Npart,nbio,labels,data_trn_KM,data_trn_c_KM,data_trn_missing_KM,data_trn_c_missing_KM,PhyModels);
+    data_MI = PutData(pts_train,pts_test,Npart,nbio,labels,data_trn_MI,data_trn_c_MI,data_trn_missing_MI,data_trn_c_missing_MI,PhyModels);
+    data = struct('KM',data_KM,'MI',data_MI);
 end
-data_MI = PutData(pts_train,pts_test,Npart,nbio,labels,data_trn_MI,data_trn_c_MI,data_trn_missing_MI,data_trn_c_missing_MI,PhyModels);
-data = struct('KM',data_KM,'MI',data_MI);
-
+% add class variable
+num_nodes = numel(data.KM.Labels)+1;
+data.KM.Labels{num_nodes} = class_name;
+data.MI.Labels{num_nodes} = class_name;
 
 
 function Ds = PutData(pts_train,pts_test,Npart,nbio,labels,data,data_c,data_missing,data_c_missing,PhyModels)

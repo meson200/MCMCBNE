@@ -78,12 +78,12 @@ for i = 1:size(Wg,1)
         end
     end
 end
-% display which links were above the confidence cutoff
+display which links were above the confidence cutoff
 WgSparse = sparse(Wg);
 [row,col] = find(WgSparse);
 Ws = nonzeros(WgSparse);
 [WsSorted,I] = sort(Ws,'descend');
-for i = 1:length(Ws)
+for i = 1:length(I)
     indx = row(I(i));
     indy = col(I(i));
     if Ws(I(i))>conf_cutoff && ttest(WgCell{indx,indy}-conf_cutoff)

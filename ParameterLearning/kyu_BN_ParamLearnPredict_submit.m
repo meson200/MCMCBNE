@@ -16,7 +16,12 @@ function result = kyu_BN_ParamLearnPredict_submit(data,MCMCresult,whichinput,clu
 % -'missing': inference with original dataset containing missing values
 % -'nointra': make inference without biomkr 'intra' or 'ratio' (so, only the baseline data)   
 % clustername: name of the cluster 
-% validation: 'bootstrap','cv'(cross validation), or 'fitting'(for 632+)
+% validation: 
+% -'bootstrap'
+% -'cv': cross validation
+% -'fitting': parameters are learned from an original training dataset
+% -'external': parameters are learned in a training dataset and inference
+% is made in a validation set
 % disc: discretization method to choose 
 % EnsembleSizes: a list of ensemble sizes to test performance 
 % (should be in an increasing order ex: [1 50 100])
@@ -75,6 +80,22 @@ switch validation
         patno_train{1} = 1:npat;
         patno_test = {};
         patno_test{1} = 1:npat;
+    case 'external'    
+        FoldsPerJob = 1;
+        trainmat_m = {};
+        trainmat_m{1} = data_in.train_missing;
+        testmat_m = {};
+        testmat_m{1} = data_in.test_missing;
+        if strcmp(whichinput,'nointra')
+            testmat_m{1} = remove_intra(testmat_m{1},labels);
+        end
+        npat_train = size(data_in.train_missing,2);
+        patno_train = {};
+        patno_train{1} = 1:npat_train;
+        npat_test = size(data_in.test_missing,2);
+        patno_test = {};
+        patno_test{1} = 1:npat_test;    
+
 end
 st = 1:FoldsPerJob:Nrand;
 Njobs = numel(st);

@@ -92,14 +92,19 @@ end
 
 % imputation 
 temp = temp_missing;
-switch imp
-    case 1
-        temp = medianimpute(temp_missing);
-    case 2
-        temp = knnimpute_kyu(temp_missing');
-        temp = temp';
+try
+    switch imp
+        case 1
+            temp = medianimpute(temp_missing);
+        case 2
+            temp = knnimpute_kyu(temp_missing');
+            temp = temp';
+    end
+catch
+   disp('imputation failed: data might contain NaN. Proceed at your own risk.');
 end
-
+    
+    
 % put everything into the data_raw cell array
 for i=1:no_marker
     for j = 1:4

@@ -1,6 +1,10 @@
 function [data_raw,data_raw_missing,class,pts_to_include,studyid,FracSize] = kyu_readphysical(NameoftheFile,imp,class_name)
 
 % read the .xls file that contains physical/clinical variables
+% currently, it does not recognize categorical variables:  
+% users are required to to provide specific instructions in a 'case' clause 
+% for parsing a string-valued variable
+%
 % input
 %
 % NameoftheFile: path to the .xls file
@@ -39,7 +43,7 @@ offset = 1;
 for k=1:size(txt,2)
     header = char(txt(1,k));
     switch header
-        case 'Instit' % institution. under construction
+        case 'Instit' % institution
             instit = txt(2:end,k);
         case 'Seq' % patient ID
             ptno = num(:,k-offset);
@@ -152,7 +156,12 @@ for k=1:size(txt,2)
             data_raw(i).value = num(:,k-offset)+1;
             i = i+1;
         case {'V20_BED','V30_BED'}
-        case {'rpdate','fibdate'}    
+        case {'rpdate','fibdate'} 
+        case {'timetorp'}    
+            data_raw(i).name = txt(1,k);
+            data_raw(i).value = num(:,k-offset);
+            data_raw(i).value(isnan(data_raw(i).value)) = 0;
+            i = i+1;
         otherwise    
             data_raw(i).name = txt(1,k);
             data_raw(i).value = num(:,k-offset);

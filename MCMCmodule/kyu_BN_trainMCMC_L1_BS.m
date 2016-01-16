@@ -55,7 +55,7 @@ parfor i=1:NoWorkers
     % initialization of graphs
     datalrn = data{floor((i-1)/NoInit)+1};
     density = InitDensity*rand(1);
-    MCMC_init_dag = kyu_generateDAG(dim,density,dag_caus);
+    MCMC_init_dag = kyu_generateDAG(dag_caus,density,maxfanin);
     [sampled_graphs, bs_w, acr_w,~,~,lik_w,post_w] = learn_struct_mcmc_L1(datalrn, ns, dag_caus,dag_benchmark, 'nsamples', MCMC_maxlength,  ...
                                                     'burnin',MCMC_burnin,'scoring_fn',scoring_fn,'init_dag',MCMC_init_dag,'init_beta',beta_i,...
                                                     'maxfanin',maxfanin,'type',nodetypes,'dirichlet',alpha_d_nodes);

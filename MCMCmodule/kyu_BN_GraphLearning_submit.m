@@ -11,8 +11,11 @@ function result = kyu_BN_GraphLearning_submit(data,ChainLength,whichprior,cluste
 % (need to do the convergence test beforehand)
 % whichprior: 'biological' or 'prior'(default)
 % clustername: name of the cluster profile
-% validation: 'bootstrap','cv'(cross validation), or 'fitting'(for 632+)
-% disc: discretization method to choose, 'KM' or 'MI'
+% validation: 
+% -'bootstrap'
+% -'cv': cross validation
+% -'fitting': parameters are learned from an original training dataset
+% -'external': graphs are learned in a training dataset
 % index: required to specify which bootstrap replicates to send to a
 % cluster ex) 1:100 (should be left [] for validation='cv')
 % result: a cell storing the results from a previous run. first time run,
@@ -49,7 +52,12 @@ switch validation
         Nrand = 1;
         index = 1;
         trainmat = {};
-        trainmat{1} = data.KM.data_orig; 
+        trainmat{1} = data_in.data_orig;
+    case 'external'
+        Nrand = 1;
+        index = 1;
+        trainmat = {};
+        trainmat{1} = data_in.data_orig;
 end
 
 disp('-------------------Bayesian Network----------------------------');

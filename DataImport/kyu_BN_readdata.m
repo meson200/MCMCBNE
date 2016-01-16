@@ -1,4 +1,4 @@
-function [data,data_c,data_missing,data_c_missing,labels,mi,studyid,FracSize,COMSI] = kyu_BN_readdata(SBRTfilter,disc)
+function [data,data_c,data_missing,data_c_missing,labels,mi,studyid,FracSize,COMSI,obj_pp] = kyu_BN_readdata(SBRTfilter,Instfilter,disc,varargin)
 
 % reads patient data from 2 .xls files (one clinical/dosimetric, one biological) into a data matrix 
 % data matrices are in the following dimensions:
@@ -7,16 +7,22 @@ function [data,data_c,data_missing,data_c_missing,labels,mi,studyid,FracSize,COM
 % the last row is reserved for an outcome vector
 %
 % inputs
-%
-% SBRTfilter = 2: include only conventioanl fx (dose per fraction <= 2)
-% SBRTfilter = 3: include only SBRT patients (fraction size <= 5)
-% SBRTfilter = 1: SBRT+Conventional
-% 
-% disc = 2: supervised (maximum mutual information)
-% disc = 3: unsupervised (k-means)
+% SBRTfilter: filter applied to fraction size
+% -SBRTfilter = 2: include only conventioanl fx (dose per fraction <= 2)
+% -SBRTfilter = 3: include only SBRT patients (fraction size <= 5)
+% -SBRTfilter = 1: SBRT+Conventional
+% InstFilter: filter applied to source institution, cell array containing
+% letters standing for the institutions to import, which is the first letter
+% of the variable 'studyID' from kyu_readphysical.m ex: {'W','C'}
+% disc: discretization option
+% -disc = 1: median
+% -disc = 2: supervised (maximum mutual information)
+% -disc = 3: unsupervised (k-means)
+% -disc = 4: use bin boundaries for training set, should be accompanied by 
+% an optional argument obj_pp
+% varargin: (for testing set only) a struct for normalization params created from training 
 %
 % outputs
-%
 % data: discretized data/ missing data filled in
 % data_c: data in a z-scored continuous scale/ missing data filled in 
 % data_missing: discretized data/ missing data left as NaN
@@ -27,21 +33,34 @@ function [data,data_c,data_missing,data_c_missing,labels,mi,studyid,FracSize,COM
 % 3-digit number (ex:W001)
 % FracSize: fraction size of the imported patients
 % COMSI: superior-inferior location of a PTV centroid 
-%
-% normalization option
-% norm = 0: don't normalize, data in raw scale
-% norm = 1: standardization (z-score) 
-% norm = 2: rescaling (min-max) 
-% norm = 3: standardization + hyper tangent mapping 
-norm = 0;
-% number of bins for discretization 
-bins = 2;
-% imputation method
-imp = 2;
-% imp = 1: fill the missing values with the group median 
-% imp = 2: k-nearest neighbor (fill with the values of the most similar
-% entries)
+% obj_pp: a collection of parameters used for pre-processing the data
+% can be handed as an input param for another run of kyu_BN_readdata.m
+% .imp: imputation parameter
+% -imp = 1: fill the missing values with the group median 
+% -imp = 2: k-nearest neighbor (fill with the values of the most similar
+% -entries)
+% .disc: discretization params. see kyu_discretize.m 
+% .norm: normalization params. see kyu_normalize.m
+% .labels: cell array of variable names imported to the training set
+
 class_name = 'RP'; % choose your endpoint here. will be saved to an array "class"
+
+if ~isempty(varargin) % import post-processing parameters if given as an input argument
+    obj_pp = varargin{1,1}; 
+    nbins = obj_pp.disc.bins;
+else
+    obj_pp = struct(); % otherwise, set new parameters here
+    % normalization option
+    % norm = 0: don't normalize, data in raw scale
+    % norm = 1: standardization (z-score) 
+    % norm = 2: rescaling (min-max) 
+    % norm = 3: standardization + hyper tangent mapping 
+    norm = 1;
+    % number of bins for discretization 
+    nbins = 2;
+    % imputation method
+    obj_pp.imp = 2;
+end
 
 % path to the xls files
 % physical and biological data separated in two .xls files
@@ -52,9 +71,9 @@ filename_meta = 'lung_metadata.csv';
 fullpath_bio = cat(2,dir_name,filename_bio);
 fullpath_phy = cat(2,dir_name,filename_phy);
 fullpath_meta = cat(2,dir_name,filename_meta);
-% read the WashU data first and obtain the list of variables from the user prompt 
-[data_raw_phy,data_raw_phy_missing,class,pts_to_include,studyid,FracSize] = kyu_readphysical(fullpath_phy,imp,class_name);
-[data_raw_bio,data_raw_bio_missing] = kyu_readbiomarkers(fullpath_bio,studyid,FracSize,imp);
+% read the clinical/physical data first and obtain the list of variables from the user prompt 
+[data_raw_phy,data_raw_phy_missing,class,pts_to_include,studyid,FracSize] = kyu_readphysical(fullpath_phy,obj_pp.imp,class_name);
+[data_raw_bio,data_raw_bio_missing] = kyu_readbiomarkers(fullpath_bio,studyid,FracSize,obj_pp.imp);
 data_raw = [data_raw_bio data_raw_phy];
 data_raw_missing = [data_raw_bio_missing data_raw_phy_missing];
 for i = 1:numel(data_raw_phy)
@@ -65,33 +84,7 @@ for i = 1:numel(data_raw_phy)
    end
 end
 
-% input dialog
-disp('The following variables are found: \n');
-for k = 1:size(data_raw,2)
-    disp(sprintf('%d. %s \n',k,data_raw(k).name{1,1}));
-end
-resp = input('choose the variables, separated by comma: ','s');
-if ~isempty(resp)
-    temp = textscan(resp,'%d','delimiter',',');
-    vars = cell2mat(temp);
-else
-    vars = 1:size(data_raw,2);  
-end
-labels = {};
-num_nodes = numel(vars);
-for i=1:num_nodes
-    ind = vars(i);
-    labels{i} = data_raw(ind).name{1,1};
-end 
-[data_X_c_raw,data_X_c_raw_missing] = kyu_preprocess(data_raw,data_raw_missing,labels,pts_to_include,[],[]);
-units = kyu_readmetadata(fullpath_meta,labels);
-studyid = studyid(pts_to_include);
-FracSize = FracSize(pts_to_include);
-NumFrac = NumFrac(pts_to_include);
-COMSI = COMSI(pts_to_include);
-class = class(pts_to_include);
-
-% apply a fraction size filter
+% apply a SBRT filter here
 switch SBRTfilter
     case 1
        FracFilter = find(NumFrac>0);
@@ -100,21 +93,65 @@ switch SBRTfilter
     case 3
        FracFilter = find(NumFrac<=5);
 end
-data_X_c_raw = data_X_c_raw(FracFilter,:);
-data_X_c_raw_missing = data_X_c_raw_missing(FracFilter,:);
-class = class(FracFilter);
-FracSize = FracSize(FracFilter);
-COMSI = COMSI(FracFilter);
-studyid = studyid(FracFilter);
+% apply institution filter here
+instfilt = [];
+if ~iscell(Instfilter)
+    Instfilter = {Instfilter};
+end
+for i = 1:numel(studyid)
+    if occurrence(studyid{i}(1),Instfilter)
+        instfilt = [instfilt i];
+    end
+end
+final_filter = intersect(FracFilter,pts_to_include);
+final_filter = intersect(final_filter,instfilt);
+class = class(final_filter);
+FracSize = FracSize(final_filter);
+studyid = studyid(final_filter);
+COMSI = COMSI(final_filter);
+NumFrac = NumFrac(final_filter);
 
-% normalize 
-[data_X_c,data_X_c_missing] = kyu_normalize(data_X_c_raw,data_X_c_raw_missing,norm);
 
-% discretize
-[data_X,data_X_missing,b_filled,b_missing,mi] = kyu_discretize(data_X_c,data_X_c_missing,class,disc,bins);
 
+% select the variables to import
+if isempty(varargin) % training set: shows user prompt
+% input dialog
+    disp('The following variables are found: \n');
+    namelist = {};
+    for k = 1:size(data_raw,2)
+        disp(sprintf('%d. %s \n',k,data_raw(k).name{1,1}));
+        namelist = [namelist data_raw(k).name];
+    end
+    resp = input('choose the variables, separated by comma: ','s');
+    if ~isempty(resp)
+        temp = textscan(resp,'%d','delimiter',',');
+        vars = cell2mat(temp);
+    else
+        vars = 1:size(data_raw,2);  
+    end
+    labels = namelist(vars);
+    obj_pp.labels = labels;
+else % testing set: import the same variables as training set, which are saved in obj_pp
+    labels = obj_pp.labels;
+end
+num_nodes = numel(labels);
+
+%[data_X_c_raw,data_X_c_raw_missing] = kyu_preprocess(data_raw,data_raw_missing,labels,pts_to_include,[],[]);
+[data_X_c_raw,data_X_c_raw_missing] = kyu_preprocess(data_raw,data_raw_missing,labels,final_filter,[],[]);
+units = kyu_readmetadata(fullpath_meta,labels);
+
+
+if isempty(varargin) % training set: create new disc/norm and save them to obj_pp
+    [data_X_c,data_X_c_missing,obj_pp.norm] = kyu_normalize(data_X_c_raw,data_X_c_raw_missing,norm); % normalize 
+    [data_X,data_X_missing,mi,obj_pp.disc] = kyu_discretize(data_X_c,data_X_c_missing,class,disc,nbins); % discretize
+else % testing set: apply the norm/disc from the training set specified in obj_pp
+    [data_X_c,data_X_c_missing,~] = kyu_normalize(data_X_c_raw,data_X_c_raw_missing,4,obj_pp.norm); % normalize 
+    [data_X,data_X_missing,mi,~] = kyu_discretize(data_X_c,data_X_c_missing,class,4,nbins,obj_pp.disc); % discretize
+end
+b_filled = obj_pp.disc.boundary_filled;
 % plot discretization results
 kyu_plotbins(data_X_c,data_X_c_raw,b_filled,labels,units);
+
 
 %optional: Sparse PCA
 % for j = 5:num_nodes
