@@ -9,14 +9,17 @@ function dag_random = kyu_generateDAG(dag_caus,density,maxfi)
 
 dim = size(dag_caus);
 [ix,iy] = find(dag_caus);
-
 isdag = false;
+
+n_possible_links = numel(find(dag_caus(:)));
+nlinks = round(density*n_possible_links)+1;
+
 while ~isdag
 
     R = zeros(dim); 
-    indx_s = randsample(length(ix),density,false);
+    indx_s = randsample(length(ix),nlinks,false);
     %R([ix(indx_s) iy(indx_s)]) = 1;
-    for i = 1:density
+    for i = 1:nlinks
        R(ix(indx_s(i)),iy(indx_s(i))) = 1;
     end
     % check cyclicity
